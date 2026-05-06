@@ -27,11 +27,10 @@
                                         class="inline">@csrf <button
                                             class="bg-blue-600 text-white py-1 px-3 rounded">Setujui Pinjam</button>
                                     </form>
-                                @elseif($loan->status == 'Menunggu Persetujuan Kembali')
+                                @elseif($loan->status == 'Dipinjam')
                                     <form action="{{ route('loans.approve_return', $loan->id) }}" method="POST"
                                         class="inline">@csrf <button
-                                            class="bg-green-600 text-white py-1 px-3 rounded">Setujui Kembali (Masuk
-                                            Gudang)</button></form>
+                                            class="bg-green-600 text-white py-1 px-3 rounded">Tandai Dikembalikan</button></form>
                                 @else
                                     <span class="text-gray-400">Tidak ada aksi</span>
                                 @endif
