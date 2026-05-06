@@ -5,7 +5,7 @@
         @if(session('success')) <div class="bg-green-100 text-green-700 p-3 rounded mb-4">{{ session('success') }}</div> @endif
         
         <table class="min-w-full border border-gray-300">
-            <tr class="bg-gray-100"><th class="border px-4 py-2">Alat</th><th class="border px-4 py-2">Tanggal</th><th class="border px-4 py-2">Status</th><th class="border px-4 py-2">Aksi</th></tr>
+            <tr class="bg-gray-100"><th class="border px-4 py-2">Alat</th><th class="border px-4 py-2">Tanggal</th><th class="border px-4 py-2">Status</th><th class="border px-4 py-2">due</th></tr>
             @foreach($loans as $loan)
             <tr>
                 <td class="border px-4 py-2">{{ $loan->equipment->nama_alat }}</td>
