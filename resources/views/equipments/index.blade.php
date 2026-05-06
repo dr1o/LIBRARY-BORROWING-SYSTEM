@@ -1,61 +1,39 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Daftar Alat Laboratorium') }}
-        </h2>
-    </x-slot>
+    <x-slot name="header"><h2 class="font-semibold text-xl text-gray-800 leading-tight">Katalog Alat Laboratorium</h2></x-slot>
+    <div class="py-12"><div class="max-w-7xl mx-auto sm:px-6 lg:px-8"><div class="bg-white shadow-sm sm:rounded-lg p-6">
+        @if(session('success')) <div class="bg-green-100 text-green-700 p-3 rounded mb-4">{{ session('success') }}</div> @endif
+        @if(session('error')) <div class="bg-red-100 text-red-700 p-3 rounded mb-4">{{ session('error') }}</div> @endif
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                <div class="mb-4">
-                    <a href="{{ route('equipments.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:border-blue-900 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150">
-                        + Tambah Alat Baru
-                    </a>
-                </div>
+        @if(auth()->user()?->role == 'admin')
+        <div class="mb-4"><a href="{{ route('equipments.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded">+ Tambah Alat Baru</a></div>
+        @endif
 
-                <table class="min-w-full border-collapse border border-gray-300">
-                    <thead>
-                        <tr class="bg-gray-100">
-                            <th class="border border-gray-300 px-4 py-2">Nama Alat</th>
-                            <th class="border border-gray-300 px-4 py-2">Kategori</th>
-                            <th class="border border-gray-300 px-4 py-2">Stok</th>
-                            <th class="border border-gray-300 px-4 py-2">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-
-                        @if(session('success'))
-                            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                                {{ session('success') }}
-                            </div>
+        <table class="min-w-full border border-gray-300">
+            <tr class="bg-gray-100"><th class="border px-4 py-2">Nama</th><th class="border px-4 py-2">Stok</th><th class="border px-4 py-2">Aksi</th></tr>
+            @foreach($all_equipment as $item)
+            <tr>
+                <td class="border px-4 py-2">{{ $item->nama_alat }}</td>
+                <td class="border px-4 py-2 text-center">{{ $item->stok == 0 ? 'Habis' : $item->stok }}</td>
+                <td class="border px-4 py-2">
+                    <div class="flex gap-4 justify-center">
+                        @if(auth()->user()?->role == 'admin')
+                            <a href="{{ route('equipments.edit', $item->id) }}" class="text-blue-600 hover:underline">Edit</a>
+                            <form action="{{ route('equipments.increase', $item->id) }}" method="POST">@csrf <button class="text-green-600">+ Stok</button></form>
+                            @if($item->stok > 0)<form action="{{ route('equipments.decrease', $item->id) }}" method="POST">@csrf <button class="text-yellow-600">- Stok</button></form>@endif
+                            <form action="{{ route('equipments.clear', $item->id) }}" method="POST">@csrf <button class="text-red-600" onclick="return confirm('Yakin?')">Kosongkan</button></form>
                         @endif
 
-                        @foreach($all_equipment as $item)
-                        <tr>
-                            <td class="border px-4 py-2">{{ $item->nama_alat }}</td>
-                            <td class="border px-4 py-2">{{ $item->category->nama_kategori }}</td>
-                            <td class="border px-4 py-2">{{ $item->stok }}</td>
-                            <td class="border px-4 py-2">
-                                <div class="flex flex-wrap gap-2">
-                                    <a href="{{ route('equipments.edit', $item->id) }}" class="text-blue-600 hover:underline font-semibold">
-                                        Edit
-                                    </a>
-
-                                    <form action="{{ route('equipments.destroy', $item->id) }}" method="POST">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-orange-600 hover:underline font-semibold" onclick="return confirm('Pindahkan ke sampah?')">
-                                            Hapus (Soft)
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+                        @if(auth()->user()?->role == 'user')
+                            @if($item->stok > 0)
+                                <form action="{{ route('loans.store') }}" method="POST">@csrf <input type="hidden" name="equipment_id" value="{{ $item->id }}"> <button class="bg-blue-600 text-white py-1 px-3 rounded">Pinjam</button></form>
+                            @else
+                                <span class="text-gray-400">Habis</span>
+                            @endif
+                        @endif
+                    </div>
+                </td>
+            </tr>
+            @endforeach
+        </table>
+    </div></div></div>
 </x-app-layout>
