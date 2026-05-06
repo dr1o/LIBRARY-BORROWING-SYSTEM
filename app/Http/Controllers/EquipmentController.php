@@ -3,69 +3,45 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Equipment;
+use App\Models\Category;
 
 class EquipmentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        $all_equipment = \App\Models\Equipment::with('category')->get();
-    // PASTIKAN memanggil 'equipments.index', BUKAN 'dashboard'
+        $all_equipment = Equipment::with('category')->get();
         return view('equipments.index', compact('all_equipment'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        // Mengambil semua kategori agar bisa dipilih di dropdown/select
-        $categories = \App\Models\Category::all();
+        $categories = Category::all();
         return view('equipments.create', compact('categories'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        // Validasi data yang masuk
         $request->validate([
             'nama_alat' => 'required',
             'category_id' => 'required',
             'stok' => 'required|integer',
         ]);
 
-        // Simpan ke database
-        \App\Models\Equipment::create($request->all());
+        Equipment::create($request->all());
 
-        // Kembali ke halaman daftar alat dengan pesan sukses
-        return redirect()->route('equipments.index')->with('success', 'Alat berhasil ditambahkan!');
+        return redirect()->route('equipments.index')
+            ->with('success', 'Alat berhasil ditambahkan!');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(string $id)
     {
-        $equipment = \App\Models\Equipment::findOrFail($id);
-        $categories = \App\Models\Category::all();
+        $equipment = Equipment::findOrFail($id);
+        $categories = Category::all();
+
         return view('equipments.edit', compact('equipment', 'categories'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
     {
         $request->validate([
@@ -74,13 +50,52 @@ class EquipmentController extends Controller
             'stok' => 'required|integer',
         ]);
 
-        $equipment = \App\Models\Equipment::findOrFail($id);
+        $equipment = Equipment::findOrFail($id);
         $equipment->update($request->all());
 
-        return redirect()->route('equipments.index')->with('success', 'Data alat berhasil diperbarui!');
+        return redirect()->route('equipments.index')
+            ->with('success', 'Data alat berhasil diperbarui!');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    public function destroy(string $id)
+    {
+        $equipment = Equipment::findOrFail($id);
+        $equipment->delete();
+
+        return redirect()->route('equipments.index')
+            ->with('success', 'Alat dipindahkan ke sampah!');
+    }
+
+    // 🔥 Kurangi stok 1
+    public function decreaseStock($id)
+    {
+        $equipment = Equipment::findOrFail($id);
+
+        if ($equipment->stok > 0) {
+            $equipment->stok -= 1;
+            $equipment->save();
+        }
+
+        return redirect()->back()->with('success', 'Stok berhasil dikurangi 1!');
+    }
+
+    // 🔥 Hapus semua stok
+    public function clearStock($id)
+    {
+        $equipment = Equipment::findOrFail($id);
+
+        $equipment->stok = 0;
+        $equipment->save();
+
+        return redirect()->back()->with('success', 'Semua stok dihapus!');
+    }
+    public function increaseStock($id)
+    {
+        $equipment = Equipment::findOrFail($id);
+
+        $equipment->stok += 1;
+        $equipment->save();
+
+        return redirect()->back()->with('success', 'Stok berhasil ditambah 1');
+    }
 }
