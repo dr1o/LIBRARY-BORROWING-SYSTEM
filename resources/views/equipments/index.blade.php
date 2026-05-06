@@ -1,6 +1,5 @@
 <x-app-layout>
     <x-slot name="header"><h2 class="font-semibold text-xl text-gray-800 leading-tight">Katalog Alat Laboratorium</h2></x-slot>
-
     <div class="py-12"><div class="max-w-7xl mx-auto sm:px-6 lg:px-8"><div class="bg-white shadow-sm sm:rounded-lg p-6">
         @if(session('success')) <div class="bg-green-100 text-green-700 p-3 rounded mb-4">{{ session('success') }}</div> @endif
         @if(session('error')) <div class="bg-red-100 text-red-700 p-3 rounded mb-4">{{ session('error') }}</div> @endif
