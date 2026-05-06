@@ -17,20 +17,22 @@ class LoanController extends Controller
 
     public function store(Request $request) {
         $equipment = Equipment::findOrFail($request->equipment_id);
-        if ($equipment->stok <= 0) return back()->with('error', 'Stok alat habis!');
 
+        // Tidak kurangi stok di sini
         Loan::create([
             'user_id' => Auth::id(),
             'equipment_id' => $equipment->id,
             'tanggal_pinjam' => now(),
             'status' => 'Menunggu Persetujuan Pinjam',
         ]);
-        $equipment->decrement('stok'); // Booking stok agar tidak diambil orang lain
+
         return back()->with('success', 'Permintaan pinjam terkirim! Tunggu persetujuan Admin.');
     }
 
     public function returnEquipment($id) {
         $loan = Loan::findOrFail($id);
+
+        // Update status, stok belum berubah
         $loan->update(['status' => 'Menunggu Persetujuan Kembali']);
         return back()->with('success', 'Permintaan kembali terkirim! Tunggu pengecekan Admin.');
     }
@@ -42,21 +44,34 @@ class LoanController extends Controller
     }
 
     public function approveBorrow($id) {
-    $loan = Loan::findOrFail($id);
+        $loan = Loan::findOrFail($id);
+        $equipment = $loan->equipment;
 
-    if($loan->equipment->stok <= 0){
-        return back()->with('error','Stok alat habis! Tidak bisa menyetujui peminjaman.');
+        if ($equipment->stok <= 0) {
+            return back()->with('error','Stok alat habis! Tidak bisa menyetujui peminjaman.');
+        }
+
+        $loan->update(['status' => 'Dipinjam']);
+        $equipment->decrement('stok'); // Kurangi stok saat admin menyetujui
+        return back()->with('success', 'Peminjaman disetujui! Stok alat telah berkurang.');
     }
-
-    $loan->update(['status' => 'Dipinjam']);
-    $loan->equipment->decrement('stok'); // Stok berkurang saat admin setujui
-    return back()->with('success', 'Peminjaman disetujui! Stok alat telah berkurang.');
-}
 
     public function approveReturn($id) {
         $loan = Loan::findOrFail($id);
         $loan->update(['status' => 'Dikembalikan']);
-        $loan->equipment->increment('stok'); // Stok kembali ke gudang
+        $loan->equipment->increment('stok'); // Tambahkan stok saat pengembalian disetujui
         return back()->with('success', 'Pengembalian disetujui. Stok telah ditambahkan kembali!');
+    }
+
+    public function rejectBorrow($id) {
+        $loan = Loan::findOrFail($id);
+        $loan->update(['status' => 'Ditolak']);
+        return back()->with('success', 'Peminjaman ditolak oleh admin.');
+    }
+
+    public function rejectReturn($id) {
+        $loan = Loan::findOrFail($id);
+        $loan->update(['status' => 'Pengembalian Ditolak']);
+        return back()->with('success', 'Pengembalian ditolak oleh admin.');
     }
 }

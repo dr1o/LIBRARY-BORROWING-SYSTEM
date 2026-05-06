@@ -2,17 +2,28 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Equipment;
 use App\Models\Category;
+use App\Models\Equipment;
+use App\Models\Loan;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class EquipmentController extends Controller
 {
     public function index()
-    {
-        $all_equipment = Equipment::with('category')->get();
-        return view('equipments.index', compact('all_equipment'));
-    }
+{
+    $userId = Auth::id();
+
+    $all_equipment = Equipment::with('category')->get();
+
+    // Ambil daftar equipment yang sedang dipinjam atau menunggu persetujuan oleh user ini
+    $userLoans = Loan::where('user_id', $userId)
+                    ->whereIn('status',['Menunggu Persetujuan Pinjam','Dipinjam'])
+                    ->pluck('equipment_id')
+                    ->toArray();
+
+    return view('equipments.index', compact('all_equipment','userLoans'));
+}
 
     public function create()
     {

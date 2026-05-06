@@ -1,13 +1,16 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EquipmentController;
 use App\Http\Controllers\LoanController;
+use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () { return redirect()->route('login'); });
+Route::get('/', function () {
+    return redirect()->route('login');
+});
 
-Route::get('/dashboard', function () { return view('dashboard'); })->middleware(['auth'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('auth')->name('dashboard');
 
 Route::middleware(['auth'])->group(function () {
     Route::resource('equipments', EquipmentController::class);
@@ -26,10 +29,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/laporan-pinjam', [LoanController::class, 'adminIndex'])->name('loans.admin');
     Route::post('/loans/{id}/approve-borrow', [LoanController::class, 'approveBorrow'])->name('loans.approve_borrow');
     Route::post('/loans/{id}/approve-return', [LoanController::class, 'approveReturn'])->name('loans.approve_return');
+    // Admin Equipment
+    Route::middleware(['auth', 'admin'])->group(function () {
+        Route::delete('/equipments/{id}', [EquipmentController::class, 'destroy'])->name('equipments.destroy');
+    });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
