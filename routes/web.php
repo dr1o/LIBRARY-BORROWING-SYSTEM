@@ -30,10 +30,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/loans/{id}/approve-borrow', [LoanController::class, 'approveBorrow'])->name('loans.approve_borrow');
     Route::post('/loans/{id}/approve-return', [LoanController::class, 'approveReturn'])->name('loans.approve_return');
     // Admin Equipment
-    Route::middleware(['auth', 'admin'])->group(function () {
-        Route::delete('/equipments/{id}', [EquipmentController::class, 'destroy'])->name('equipments.destroy');
-    });
-
+    Route::delete('/equipments/{id}', [EquipmentController::class, 'destroy'])
+     ->name('equipments.destroy')
+     ->middleware('auth','admin');
+//profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

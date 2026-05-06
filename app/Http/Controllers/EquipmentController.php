@@ -68,14 +68,12 @@ class EquipmentController extends Controller
             ->with('success', 'Data alat berhasil diperbarui!');
     }
 
-    public function destroy(string $id)
-    {
-        $equipment = Equipment::findOrFail($id);
-        $equipment->delete();
-
-        return redirect()->route('equipments.index')
-            ->with('success', 'Alat dipindahkan ke sampah!');
-    }
+    public function destroy($id)
+{
+    $equipment = Equipment::withTrashed()->findOrFail($id); // include soft deleted
+    $equipment->forceDelete(); // hapus permanen
+    return back()->with('success', 'Alat berhasil dihapus permanen!');
+}
 
     // 🔥 Kurangi stok 1
     public function decreaseStock($id)

@@ -26,10 +26,18 @@
                             <div>{{ Auth::user()?->name }} ({{ Auth::user()?->role }})</div>
                         </button>
                     </x-slot>
+
                     <x-slot name="content">
+                        {{-- Edit Profile --}}
+                        <x-dropdown-link :href="route('profile.edit')">Edit Profile</x-dropdown-link>
+
+                        {{-- Log Out --}}
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">Log Out</x-dropdown-link>
+                            <x-dropdown-link :href="route('logout')" 
+                                onclick="event.preventDefault(); this.closest('form').submit();">
+                                Log Out
+                            </x-dropdown-link>
                         </form>
                     </x-slot>
                 </x-dropdown>
