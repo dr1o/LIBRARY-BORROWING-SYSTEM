@@ -44,16 +44,17 @@ class LoanController extends Controller
     }
 
     public function approveBorrow($id) {
-        $loan = Loan::findOrFail($id);
-        $equipment = $loan->equipment;
-
-        if ($equipment->stok <= 0) {
-            return back()->with('error','Stok alat habis! Tidak bisa menyetujui peminjaman.');
-        }
-
-        $loan->update(['status' => 'Dipinjam']);
-        $equipment->decrement('stok'); // Kurangi stok saat admin menyetujui
-        return back()->with('success', 'Peminjaman disetujui! Stok alat telah berkurang.');
+    $loan = Loan::findOrFail($id);
+    $equipment = $loan->equipment;
+    if ($equipment->stok <= 0) {
+        return back()->with('error','Stok alat habis! Tidak bisa menyetujui peminjaman.');
+    }
+    $loan->update([
+        'status' => 'Dipinjam',
+        'approved_at' => now()
+    ]);
+    $equipment->decrement('stok');
+    return back()->with('success', 'Peminjaman disetujui! Stok alat telah berkurang.');
     }
 
     public function approveReturn($id) {
