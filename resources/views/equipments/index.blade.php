@@ -58,8 +58,7 @@
                                     <!-- Tambah stok -->
                                     <form action="{{ route('equipments.increase', $item->id) }}" method="POST">
                                         @csrf
-                                        <button type="submit"
-                                            class="text-green-600 font-semibold">
+                                        <button type="submit" class="text-green-600 font-semibold">
                                             Tambah Stok
                                         </button>
                                     </form>
@@ -68,22 +67,30 @@
                                     @if($item->stok > 0)
                                     <form action="{{ route('equipments.decrease', $item->id) }}" method="POST">
                                         @csrf
-                                        <button type="submit"
-                                            class="text-yellow-600 font-semibold">
+                                        <button type="submit" class="text-yellow-600 font-semibold">
                                             Kurangi Stok
                                         </button>
                                     </form>
-                                    @else
-                                        <span class="text-gray-400">Kurangi Stok</span>
                                     @endif
 
-                                    <!-- Kosongkan stok -->
+                                    <!-- Reset stok -->
                                     <form action="{{ route('equipments.clear', $item->id) }}" method="POST">
                                         @csrf
                                         <button type="submit"
                                             class="text-red-600 font-semibold"
-                                            onclick="return confirm('Kosongkan stok?')">
-                                            Kosongkan
+                                            onclick="return confirm('Reset stok?')">
+                                            Kosongkan 
+                                        </button>
+                                    </form>
+
+                                    <!-- Hapus data -->
+                                    <form action="{{ route('equipments.destroy', $item->id) }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
+                                            class="text-gray-800 font-semibold"
+                                            onclick="return confirm('Hapus alat ini?')">
+                                            Hapus
                                         </button>
                                     </form>
 
