@@ -27,6 +27,12 @@
                                         class="inline">@csrf <button
                                             class="bg-blue-600 text-white py-1 px-3 rounded">Setujui Pinjam</button>
                                     </form>
+                                    
+                                    <form action="{{ route('loans.reject_borrow', $loan->id) }}" method="POST"
+                                        class="inline">@csrf <button
+                                            class="bg-red-600 text-white py-1 px-3 rounded ml-2">Tolak Pinjam</button>
+                                    </form>
+
                                 @elseif($loan->status == 'Dipinjam')
                                     <form action="{{ route('loans.approve_return', $loan->id) }}" method="POST"
                                         class="inline">@csrf <button
