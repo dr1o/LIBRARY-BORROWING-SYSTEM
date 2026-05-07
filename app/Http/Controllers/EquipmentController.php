@@ -10,15 +10,22 @@ use Illuminate\Support\Facades\Auth;
 
 class EquipmentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
 {
     $userId = Auth::id();
 
-    $all_equipment = Equipment::with('category')->get();
+    $query = Equipment::with('category');
 
-    // Ambil daftar equipment yang sedang dipinjam atau menunggu persetujuan oleh user ini
+    // 🔍 SEARCH BAR
+    if ($request->has('search')) {
+        $query->where('nama_alat', 'like', '%' . $request->search . '%');
+    }
+
+    $all_equipment = $query->get();
+
+    // Ambil daftar equipment yang sedang dipinjam atau menunggu
     $userLoans = Loan::where('user_id', $userId)
-                    ->whereIn('status',['Menunggu Persetujuan Pinjam','Dipinjam'])
+                    ->whereIn('status', ['Menunggu Persetujuan Pinjam','Dipinjam'])
                     ->pluck('equipment_id')
                     ->toArray();
 
