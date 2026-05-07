@@ -65,7 +65,6 @@
                                 {{-- USER ACTIONS --}}
                                 @if(auth()->user()?->role == 'user')
                                 @php
-                                // Cek apakah user sudah meminjam alat ini dan belum dikembalikan
                                 $alreadyBorrowed = \App\Models\Loan::where('user_id', auth()->id())
                                 ->where('equipment_id', $item->id)
                                 ->whereIn('status',['Menunggu Persetujuan Pinjam','Dipinjam'])
@@ -73,12 +72,13 @@
                                 @endphp
 
                                 @if($alreadyBorrowed)
-                                <button class="bg-gray-400 text-white py-1 px-3 rounded cursor-not-allowed" disabled>Sudah Dipinjam</button>
+                                <button class="bg-gray-400 text-white py-1 px-3 rounded cursor-not-allowed" disabled>Sedang Dipinjam</button>
                                 @elseif($item->stok > 0)
-                                <form action="{{ route('loans.store') }}" method="POST">
+                                <form action="{{ route('loans.store') }}" method="POST" class="flex items-center gap-2">
                                     @csrf
                                     <input type="hidden" name="equipment_id" value="{{ $item->id }}">
-                                    <button class="bg-blue-600 text-white py-1 px-3 rounded">Pinjam</button>
+                                    <input type="number" name="jumlah" min="1" max="{{ $item->stok }}" value="1" class="w-16 border-gray-300 rounded text-sm py-1 px-2" required title="Jumlah Pinjam">
+                                    <button class="bg-blue-600 text-white py-1 px-3 rounded hover:bg-blue-700">Pinjam</button>
                                 </form>
                                 @else
                                 <span class="text-gray-400">Habis</span>

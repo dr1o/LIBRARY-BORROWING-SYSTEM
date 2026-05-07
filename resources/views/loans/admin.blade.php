@@ -20,7 +20,7 @@
                     @foreach ($loans as $loan)
                     <tr>
                         <td class="border px-4 py-2">{{ $loan->user->name }}</td>
-                        <td class="border px-4 py-2">{{ $loan->equipment->nama_alat }}</td>
+                        <td class="border px-4 py-2">{{ $loan->equipment->nama_alat }} (x{{ $loan->jumlah }})</td>
                         <td class="border px-4 py-2 font-bold">{{ $loan->status }}</td>
                         <td class="border px-4 py-2">
                             @if($loan->approved_at)

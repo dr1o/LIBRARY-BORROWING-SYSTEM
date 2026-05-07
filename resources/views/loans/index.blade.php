@@ -8,7 +8,7 @@
             <tr class="bg-gray-100"><th class="border px-4 py-2">Alat</th><th class="border px-4 py-2">Tanggal</th><th class="border px-4 py-2">Status</th><th class="border px-4 py-2">Due Date</th></tr>
             @foreach($loans as $loan)
             <tr>
-                <td class="border px-4 py-2">{{ $loan->equipment->nama_alat }}</td>
+                <td class="border px-4 py-2">{{ $loan->equipment->nama_alat }} (x{{ $loan->jumlah }})</td>
                 <td class="border px-4 py-2">{{ \Carbon\Carbon::parse($loan->tanggal_pinjam)->format('d M Y') }}</td>
                 <td class="border px-4 py-2 font-bold">{{ $loan->status }}</td>
                 <td class="border px-4 py-2">
