@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\Loan;
-use App\Models\Equipment;
+use App\Models\Borrowing;
+use App\Models\Book;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
@@ -15,29 +15,29 @@ class DashboardController extends Controller
 
         if ($user->role === 'admin') {
             $totalUsers = User::count();
-            $totalEquipments = Equipment::count();
-            $totalLoans = Loan::count();
-            $pendingLoans = Loan::where('status', 'Menunggu Persetujuan Pinjam')->count();
-            $borrowedLoans = Loan::where('status', 'Dipinjam')->count();
+            $totalBooks = Book::count();
+            $totalBorrowings = Borrowing::count();
+            $pendingBorrowings = Borrowing::where('status', 'Menunggu Persetujuan Pinjam')->count();
+            $activeBorrowings = Borrowing::whereIn('status', ['Dipinjam', 'Menunggu Persetujuan Kembali'])->count();
 
             return view('dashboard', compact(
                 'totalUsers',
-                'totalEquipments',
-                'totalLoans',
-                'pendingLoans',
-                'borrowedLoans'
+                'totalBooks',
+                'totalBorrowings',
+                'pendingBorrowings',
+                'activeBorrowings'
             ));
         } else {
-            $activeLoans = Loan::where('user_id', $user->id)
-                ->where('status', 'Dipinjam')->count();
-            $returnedLoans = Loan::where('user_id', $user->id)
+            $activeBorrowings = Borrowing::where('user_id', $user->id)
+                ->whereIn('status', ['Dipinjam', 'Menunggu Persetujuan Kembali'])->count();
+            $returnedBorrowings = Borrowing::where('user_id', $user->id)
                 ->where('status', 'Dikembalikan')->count();
-            $availableEquipments = Equipment::where('stok', '>', 0)->count();
+            $availableBooks = Book::where('stok', '>', 0)->count();
 
             return view('dashboard', compact(
-                'activeLoans',
-                'returnedLoans',
-                'availableEquipments'
+                'activeBorrowings',
+                'returnedBorrowings',
+                'availableBooks'
             ));
         }
     }

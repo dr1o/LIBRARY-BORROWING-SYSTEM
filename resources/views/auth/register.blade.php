@@ -3,6 +3,17 @@
         @csrf
 
         <!-- Name -->
+         <div class="mt-4">
+            <x-input-label for="id_anggota" value="ID Anggota / NIM" />
+            <x-text-input id="id_anggota" class="block mt-1 w-full" type="text" name="id_anggota" :value="old('id_anggota')" required autocomplete="id_anggota" />
+            <x-input-error :messages="$errors->get('id_anggota')" class="mt-2" />
+        </div>
+
+        <div class="mt-4">
+            <x-input-label for="kontak" value="Nomor HP / Kontak" />
+            <x-text-input id="kontak" class="block mt-1 w-full" type="text" name="kontak" :value="old('kontak')" required autocomplete="kontak" />
+            <x-input-error :messages="$errors->get('kontak')" class="mt-2" />
+        </div>
         <div>
             <x-input-label for="name" :value="__('Name')" />
             <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />

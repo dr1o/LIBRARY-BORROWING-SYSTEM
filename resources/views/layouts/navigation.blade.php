@@ -3,18 +3,23 @@
         <div class="flex justify-between h-16">
             <div class="flex">
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}" class="font-bold text-xl text-blue-600">Sistem LAB</a>
+                    <a href="{{ route('dashboard') }}" class="flex items-center gap-3 hover:opacity-80 transition">
+                        <img src="{{ asset('images/logo.png') }}" alt="Logo UNDIP" class="h-10 w-auto">
+                        <span class="font-bold text-xl text-blue-600 hidden sm:block">Sistem Perpustakaan</span>
+                    </a>
                 </div>
 
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">Dashboard</x-nav-link>
 
                     @if(Auth::user()?->role == 'admin')
-                        <x-nav-link :href="route('equipments.index')" :active="request()->routeIs('equipments.*')">Kelola Alat (Admin)</x-nav-link>
-                        <x-nav-link :href="route('loans.admin')" :active="request()->routeIs('loans.admin')">Laporan & Persetujuan</x-nav-link>
+                        <x-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*')">Kategori</x-nav-link>
+                        <x-nav-link :href="route('members.index')" :active="request()->routeIs('members.index')">Kelola Anggota</x-nav-link>
+                        <x-nav-link :href="route('books.index')" :active="request()->routeIs('books.*')">Kelola Buku</x-nav-link>
+                        <x-nav-link :href="route('borrowings.admin')" :active="request()->routeIs('borrowings.admin')">Sirkulasi & Persetujuan</x-nav-link>
                     @else
-                        <x-nav-link :href="route('equipments.index')" :active="request()->routeIs('equipments.*')">Daftar Alat (Mahasiswa)</x-nav-link>
-                        <x-nav-link :href="route('loans.index')" :active="request()->routeIs('loans.index')">Riwayat Pinjam</x-nav-link>
+                        <x-nav-link :href="route('books.index')" :active="request()->routeIs('books.*')">Katalog Buku</x-nav-link>
+                        <x-nav-link :href="route('borrowings.index')" :active="request()->routeIs('borrowings.index')">Riwayat Pinjam</x-nav-link>
                     @endif
                 </div>
             </div>
@@ -28,10 +33,8 @@
                     </x-slot>
 
                     <x-slot name="content">
-                        {{-- Edit Profile --}}
                         <x-dropdown-link :href="route('profile.edit')">Edit Profile</x-dropdown-link>
 
-                        {{-- Log Out --}}
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <x-dropdown-link :href="route('logout')" 

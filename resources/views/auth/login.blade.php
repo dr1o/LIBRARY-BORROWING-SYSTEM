@@ -47,14 +47,6 @@
                 <span class="text-gray-600">Remember me</span>
             </label>
 
-            @if (Route::has('password.request'))
-                <a 
-                    href="{{ route('password.request') }}"
-                    class="text-indigo-600 hover:underline"
-                >
-                    Forgot password?
-                </a>
-            @endif
         </div>
 
         <!-- Button -->

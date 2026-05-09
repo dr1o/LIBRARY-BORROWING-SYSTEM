@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Katalog Alat Laboratorium</h2>
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Katalog Buku Perpustakaan</h2>
     </x-slot>
 
     <div class="py-12">
@@ -16,57 +16,62 @@
 
                 @if(auth()->user()?->role == 'admin')
                 <div class="mb-4">
-                    <a href="{{ route('equipments.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded">+ Tambah Alat Baru</a>
+                    <a href="{{ route('books.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded">+ Tambah Buku Baru</a>
                 </div>
                 @endif
-                <form method="GET" class="mb-4 flex gap-2">
+                <form method="GET" class="mb-4 flex flex-wrap gap-2">
                     <input type="text" name="search"
                         value="{{ request('search') }}"
-                        placeholder="Cari nama alat..."
+                        placeholder="Cari judul atau penulis..."
                         class="border p-2 rounded w-1/3">
 
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">
-                        Cari
-                    </button>
+                    <select name="category_id" class="border p-2 rounded">
+                        <option value="">Semua Kategori</option>
+                        @foreach($categories as $cat)
+                            <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>
+                                {{ $cat->nama_kategori }}
+                            </option>
+                        @endforeach
+                    </select>
 
-                    @if(request('search'))
-                    <a href="{{ route('equipments.index') }}" class="text-gray-600 underline self-center">
-                        Reset
-                    </a>
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition">Cari & Filter</button>
+
+                    @if(request('search') || request('category_id'))
+                    <a href="{{ route('books.index') }}" class="text-gray-600 underline self-center ml-2">Reset</a>
                     @endif
                 </form>
+                
                 <table class="min-w-full border border-gray-300">
                     <tr class="bg-gray-100">
-                        <th class="border px-4 py-2">Nama</th>
+                        <th class="border px-4 py-2">Judul Buku</th>
+                        <th class="border px-4 py-2">Penulis</th>
                         <th class="border px-4 py-2">Stok</th>
                         <th class="border px-4 py-2">Aksi</th>
                     </tr>
-                    @foreach($all_equipment as $item)
+                    @foreach($all_books as $item)
                     <tr>
-                        <td class="border px-4 py-2">{{ $item->nama_alat }}</td>
+                        <td class="border px-4 py-2 font-semibold">{{ $item->judul_buku }}</td>
+                        <td class="border px-4 py-2 text-gray-600">{{ $item->penulis ?? '-' }}</td>
                         <td class="border px-4 py-2 text-center">{{ $item->stok == 0 ? 'Habis' : $item->stok }}</td>
                         <td class="border px-4 py-2">
-                            <div class="flex gap-4 justify-center">
+                            <div class="flex gap-4 justify-center items-center">
 
                                 {{-- ADMIN ACTIONS --}}
                                 @if(auth()->user()?->role == 'admin')
-                                <a href="{{ route('equipments.edit', $item->id) }}" class="text-blue-600 hover:underline">Edit</a>
-                                <form action="{{ route('equipments.increase', $item->id) }}" method="POST">@csrf <button class="text-green-600">+ Stok</button></form>
-                                @if($item->stok > 0)
-                                <form action="{{ route('equipments.decrease', $item->id) }}" method="POST">@csrf <button class="text-yellow-600">- Stok</button></form>
-                                @endif
-                                <form action="{{ route('equipments.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus alat ini secara permanen?');">
+                                <a href="{{ route('books.edit', $item->id) }}" class="text-blue-600 hover:underline">Edit</a>
+                                
+                                <form action="{{ route('books.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus buku ini secara permanen?');">
                                     @csrf
                                     @method('DELETE')
-                                    <button class="text-red-600">Hapus Permanen</button>
+                                    <button class="text-red-600 hover:underline">Hapus Permanen</button>
                                 </form>
                                 @endif
 
                                 {{-- USER ACTIONS --}}
                                 @if(auth()->user()?->role == 'user')
                                 @php
-                                $alreadyBorrowed = \App\Models\Loan::where('user_id', auth()->id())
-                                ->where('equipment_id', $item->id)
+                                $alreadyBorrowed = \App\Models\Borrowing::where('user_id', auth()->id())
+                                ->where('book_id', $item->id)
                                 ->whereIn('status',['Menunggu Persetujuan Pinjam','Dipinjam'])
                                 ->exists();
                                 @endphp
@@ -74,9 +79,9 @@
                                 @if($alreadyBorrowed)
                                 <button class="bg-gray-400 text-white py-1 px-3 rounded cursor-not-allowed" disabled>Sedang Dipinjam</button>
                                 @elseif($item->stok > 0)
-                                <form action="{{ route('loans.store') }}" method="POST" class="flex items-center gap-2">
+                                <form action="{{ route('borrowings.store') }}" method="POST" class="flex items-center gap-2">
                                     @csrf
-                                    <input type="hidden" name="equipment_id" value="{{ $item->id }}">
+                                    <input type="hidden" name="book_id" value="{{ $item->id }}">
                                     <input type="number" name="jumlah" min="1" max="{{ $item->stok }}" value="1" class="w-16 border-gray-300 rounded text-sm py-1 px-2" required title="Jumlah Pinjam">
                                     <button class="bg-blue-600 text-white py-1 px-3 rounded hover:bg-blue-700">Pinjam</button>
                                 </form>
