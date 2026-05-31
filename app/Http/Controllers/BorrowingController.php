@@ -46,8 +46,29 @@ class BorrowingController extends Controller
         return back()->with('success', 'Permintaan kembali terkirim!');
     }
 
-    public function adminIndex() {
-        $borrowings = Borrowing::with(['user', 'book'])->orderBy('created_at', 'desc')->get();
+    public function adminIndex(Request $request) {
+        $query = Borrowing::with(['user', 'book']);
+        
+        // Search by user name
+        if ($request->has('search') && $request->search) {
+            $query->whereHas('user', function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%');
+            });
+        }
+        
+        // Filter by status
+        if ($request->has('status') && $request->status) {
+            $query->where('status', $request->status);
+        }
+        
+        // Filter by overdue
+        if ($request->has('overdue') && $request->overdue == 'yes') {
+            $query->where('status', 'Dipinjam')
+                  ->where('tenggat_waktu', '<', now());
+        }
+        
+        $borrowings = $query->orderBy('created_at', 'desc')->get();
+        
         return view('borrowings.admin', compact('borrowings'));
     }
 
@@ -98,5 +119,49 @@ class BorrowingController extends Controller
     public function rejectBorrow($id) {
         Borrowing::findOrFail($id)->update(['status' => 'Ditolak']);
         return back()->with('success', 'Peminjaman ditolak.');
+    }
+
+    public function exportCSV() {
+        $borrowings = Borrowing::with(['user', 'book'])->orderBy('created_at', 'desc')->get();
+        
+        $filename = "laporan_peminjaman_" . date('Y-m-d') . ".csv";
+        $handle = fopen('php://output', 'w');
+        
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        
+        // Add BOM for UTF-8
+        fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+        
+        // CSV Header
+        fputcsv($handle, [
+            'ID',
+            'Peminjam',
+            'Buku',
+            'Jumlah',
+            'Tanggal Pinjam',
+            'Tenggat Waktu',
+            'Status',
+            'Denda',
+            'Tanggal Dibuat'
+        ], ';');
+        
+        // CSV Data
+        foreach ($borrowings as $borrowing) {
+            fputcsv($handle, [
+                $borrowing->id,
+                $borrowing->user->name,
+                $borrowing->book->judul_buku,
+                $borrowing->jumlah,
+                $borrowing->tanggal_pinjam ? Carbon::parse($borrowing->tanggal_pinjam)->format('d/m/Y') : '-',
+                $borrowing->tenggat_waktu ? Carbon::parse($borrowing->tenggat_waktu)->format('d/m/Y') : '-',
+                $borrowing->status,
+                'Rp ' . number_format($borrowing->denda, 0, ',', '.'),
+                $borrowing->created_at->format('d/m/Y H:i')
+            ], ';');
+        }
+        
+        fclose($handle);
+        exit;
     }
 }

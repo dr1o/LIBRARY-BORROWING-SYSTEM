@@ -18,6 +18,8 @@
                                 <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Tanggal Pinjam</th>
                                 <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
                                 <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Tenggat Waktu</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Sisa Hari</th>
+                                <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Estimasi Denda</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
@@ -38,9 +40,8 @@
                                     @if($borrowing->tenggat_waktu)
                                         @php
                                             $dueDate = \Carbon\Carbon::parse($borrowing->tenggat_waktu);
-                                            $isOverdue = $dueDate->isPast() && in_array($borrowing->status, ['Dipinjam', 'Menunggu Persetujuan Kembali']);
                                         @endphp
-                                        @if($isOverdue)
+                                        @if($borrowing->is_overdue)
                                             <span class="text-red-600 font-bold bg-red-50 px-2 py-1 rounded">{{ $dueDate->format('d M Y') }} (Terlambat)</span>
                                         @else
                                             <span class="text-gray-600">{{ $dueDate->format('d M Y') }}</span>
@@ -49,10 +50,30 @@
                                         <span class="text-gray-400">-</span>
                                     @endif
                                 </td>
+                                <td class="px-6 py-4">
+                                    @if($borrowing->remaining_days !== null)
+                                        @if($borrowing->remaining_days > 0)
+                                            <span class="text-green-600 font-semibold bg-green-50 px-2 py-1 rounded">{{ $borrowing->remaining_days }} hari</span>
+                                        @elseif($borrowing->remaining_days == 0)
+                                            <span class="text-red-600 font-bold bg-red-50 px-2 py-1 rounded">{{ $borrowing->days_late }} hari terlambat</span>
+                                        @endif
+                                    @else
+                                        <span class="text-gray-400">-</span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4">
+                                    @if($borrowing->estimated_fine > 0)
+                                        <span class="text-red-600 font-bold bg-red-50 px-2 py-1 rounded">Rp {{ number_format($borrowing->estimated_fine, 0, ',', '.') }}</span>
+                                    @elseif($borrowing->remaining_days !== null && $borrowing->remaining_days > 0)
+                                        <span class="text-gray-500 text-sm">Rp 0</span>
+                                    @else
+                                        <span class="text-gray-400">-</span>
+                                    @endif
+                                </td>
                             </tr>
                             @endforeach
                             @if($borrowings->isEmpty())
-                                <tr><td colspan="4" class="px-6 py-12 text-center text-gray-500">Anda belum memiliki riwayat peminjaman.</td></tr>
+                                <tr><td colspan="6" class="px-6 py-12 text-center text-gray-500">Anda belum memiliki riwayat peminjaman.</td></tr>
                             @endif
                         </tbody>
                     </table>

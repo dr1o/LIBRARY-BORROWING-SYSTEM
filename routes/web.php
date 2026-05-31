@@ -34,7 +34,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/laporan-pinjam', [BorrowingController::class, 'adminIndex'])->name('borrowings.admin');
     Route::post('/borrowings/{id}/approve-borrow', [BorrowingController::class, 'approveBorrow'])->name('borrowings.approve_borrow');
     Route::post('/borrowings/{id}/approve-return', [BorrowingController::class, 'approveReturn'])->name('borrowings.approve_return');
-    Route::post('/borrowings/{id}/reject-borrow', [BorrowingController::class, 'rejectBorrow'])->name('borrowings.reject_borrow'); 
+    Route::post('/borrowings/{id}/reject-borrow', [BorrowingController::class, 'rejectBorrow'])->name('borrowings.reject_borrow');
+    Route::get('/laporan-pinjam/export', [BorrowingController::class, 'exportCSV'])->name('borrowings.export'); 
     
     // Admin Books
     Route::delete('/books/{id}', [BookController::class, 'destroy'])
