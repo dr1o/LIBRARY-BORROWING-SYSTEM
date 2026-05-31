@@ -20,7 +20,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/categories', [App\Http\Controllers\CategoryController::class, 'store'])->name('categories.store');
     Route::delete('/categories/{id}', [App\Http\Controllers\CategoryController::class, 'destroy'])->name('categories.destroy');
     
-    // Admin Members
+
    // Admin Members
     Route::get('/members', [App\Http\Controllers\UserController::class, 'index'])->name('members.index');
     Route::post('/members/{id}/promote', [App\Http\Controllers\UserController::class, 'promote'])->name('members.promote');
