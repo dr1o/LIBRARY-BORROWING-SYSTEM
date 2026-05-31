@@ -37,10 +37,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/borrowings/{id}/reject-borrow', [BorrowingController::class, 'rejectBorrow'])->name('borrowings.reject_borrow');
     Route::get('/laporan-pinjam/export', [BorrowingController::class, 'exportCSV'])->name('borrowings.export'); 
     
-    // Admin Books
-    Route::delete('/books/{id}', [BookController::class, 'destroy'])
-        ->name('books.destroy');
-
     // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
