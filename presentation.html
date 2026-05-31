@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Presentasi – Sistem Peminjaman Buku Perpustakaan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0e1a;
+      --surface: #111827;
+      --surface2: #1a2235;
+      --accent: #6366f1;
+      --accent2: #8b5cf6;
+      --accent3: #06b6d4;
+      --green: #10b981;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --orange: #f97316;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --border: rgba(99,102,241,0.2);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); }
+
+    /* ── SLIDE ENGINE ── */
+    #deck { width: 100%; height: 100vh; position: relative; }
+    .slide {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      padding: 60px 80px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      transform: translateY(20px);
+    }
+    .slide.active { opacity: 1; pointer-events: all; transform: translateY(0); }
+
+    /* ── NAVIGATION ── */
+    #nav {
+      position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 16px; z-index: 999;
+      background: rgba(17,24,39,0.85); backdrop-filter: blur(12px);
+      border: 1px solid var(--border); border-radius: 50px; padding: 12px 24px;
+    }
+    .nav-btn {
+      background: var(--accent); color: white; border: none; border-radius: 50%;
+      width: 36px; height: 36px; cursor: pointer; font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .nav-btn:hover { background: var(--accent2); transform: scale(1.1); }
+    .nav-btn:disabled { background: #374151; cursor: not-allowed; transform: none; }
+    #slide-counter { font-size: 14px; color: var(--muted); min-width: 60px; text-align: center; }
+    #progress-bar {
+      position: fixed; top: 0; left: 0; height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent3));
+      transition: width 0.4s ease; z-index: 999;
+    }
+
+    /* ── SLIDE DOTS ── */
+    #dots {
+      position: fixed; right: 24px; top: 50%; transform: translateY(-50%);
+      display: flex; flex-direction: column; gap: 8px; z-index: 999;
+    }
+    .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #374151; cursor: pointer; transition: background 0.2s, transform 0.2s;
+    }
+    .dot.active { background: var(--accent); transform: scale(1.4); }
+
+    /* ── TITLE SLIDE ── */
+    .slide-title { text-align: center; max-width: 900px; }
+    .slide-title .badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.4);
+      padding: 6px 16px; border-radius: 50px; font-size: 13px; color: #a5b4fc;
+      margin-bottom: 24px; letter-spacing: 0.05em; text-transform: uppercase;
+    }
+    .slide-title h1 {
+      font-size: clamp(32px, 5vw, 64px); font-weight: 900; line-height: 1.1;
+      background: linear-gradient(135deg, #a5b4fc, #818cf8, #06b6d4);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-bottom: 20px;
+    }
+    .slide-title .subtitle { font-size: clamp(14px, 2vw, 18px); color: var(--muted); line-height: 1.7; max-width: 680px; margin: 0 auto 32px; }
+    .slide-title .meta { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; }
+    .meta-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #64748b; }
+    .meta-item span { color: var(--muted); }
+
+    /* ── SECTION HEADER ── */
+    .section-num {
+      font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--accent3); margin-bottom: 8px; font-weight: 600;
+    }
+    .section-title {
+      font-size: clamp(22px, 3.5vw, 42px); font-weight: 800; margin-bottom: 12px;
+      background: linear-gradient(135deg, #e2e8f0, #a5b4fc);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .section-sub { font-size: 15px; color: var(--muted); max-width: 700px; line-height: 1.7; }
+
+    /* ── CARDS GRID ── */
+    .cards { display: grid; gap: 16px; width: 100%; max-width: 1100px; }
+    .cards.cols-2 { grid-template-columns: 1fr 1fr; }
+    .cards.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .cards.cols-4 { grid-template-columns: repeat(4, 1fr); }
+    .card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+      padding: 24px; transition: transform 0.2s, border-color 0.2s;
+    }
+    .card:hover { transform: translateY(-2px); border-color: rgba(99,102,241,0.5); }
+    .card .icon { font-size: 28px; margin-bottom: 12px; }
+    .card h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; color: #e2e8f0; }
+    .card p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+    .card.accent-green { border-left: 3px solid var(--green); }
+    .card.accent-blue { border-left: 3px solid var(--accent); }
+    .card.accent-purple { border-left: 3px solid var(--accent2); }
+    .card.accent-cyan { border-left: 3px solid var(--accent3); }
+    .card.accent-yellow { border-left: 3px solid var(--yellow); }
+    .card.accent-red { border-left: 3px solid var(--red); }
+    .card.accent-orange { border-left: 3px solid var(--orange); }
+
+    /* ── TIMELINE ── */
+    .timeline { display: flex; gap: 0; width: 100%; max-width: 1050px; position: relative; }
+    .timeline::before {
+      content: ''; position: absolute; top: 40px; left: calc(12.5%);
+      width: 75%; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent3));
+    }
+    .tl-item { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; }
+    .tl-dot {
+      width: 20px; height: 20px; border-radius: 50%; border: 3px solid;
+      background: var(--bg); z-index: 1; margin-bottom: 16px;
+      position: relative; top: 31px;
+    }
+    .tl-item:nth-child(1) .tl-dot { border-color: var(--accent); }
+    .tl-item:nth-child(2) .tl-dot { border-color: var(--accent3); }
+    .tl-item:nth-child(3) .tl-dot { border-color: var(--green); }
+    .tl-item:nth-child(4) .tl-dot { border-color: var(--yellow); }
+    .tl-body { margin-top: 32px; text-align: center; padding: 0 8px; }
+    .tl-tag {
+      display: inline-block; padding: 3px 10px; border-radius: 50px; font-size: 11px;
+      font-weight: 700; letter-spacing: 0.05em; margin-bottom: 8px;
+    }
+    .tl-item:nth-child(1) .tl-tag { background: rgba(99,102,241,0.15); color: #a5b4fc; }
+    .tl-item:nth-child(2) .tl-tag { background: rgba(6,182,212,0.15); color: #67e8f9; }
+    .tl-item:nth-child(3) .tl-tag { background: rgba(16,185,129,0.15); color: #6ee7b7; }
+    .tl-item:nth-child(4) .tl-tag { background: rgba(245,158,11,0.15); color: #fde68a; }
+    .tl-title { font-size: 13px; font-weight: 700; margin-bottom: 6px; color: #e2e8f0; }
+    .tl-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+    /* ── ARCH DIAGRAM ── */
+    .arch-box { width: 100%; max-width: 1000px; }
+    .arch-layer {
+      display: flex; align-items: center; gap: 12px; padding: 14px 20px;
+      border-radius: 12px; margin-bottom: 12px; position: relative;
+    }
+    .arch-layer.frontend { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3); }
+    .arch-layer.backend  { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); }
+    .arch-layer.database { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); }
+    .arch-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; min-width: 90px; }
+    .arch-layer.frontend .arch-label { color: #a5b4fc; }
+    .arch-layer.backend  .arch-label { color: #6ee7b7; }
+    .arch-layer.database .arch-label { color: #fde68a; }
+    .arch-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip {
+      padding: 5px 12px; border-radius: 50px; font-size: 12px; font-weight: 500;
+    }
+    .chip.blue   { background: rgba(99,102,241,0.2); color: #c7d2fe; border: 1px solid rgba(99,102,241,0.4); }
+    .chip.green  { background: rgba(16,185,129,0.2); color: #a7f3d0; border: 1px solid rgba(16,185,129,0.4); }
+    .chip.yellow { background: rgba(245,158,11,0.2); color: #fde68a; border: 1px solid rgba(245,158,11,0.4); }
+    .chip.purple { background: rgba(139,92,246,0.2); color: #ddd6fe; border: 1px solid rgba(139,92,246,0.4); }
+    .chip.cyan   { background: rgba(6,182,212,0.2);  color: #a5f3fc; border: 1px solid rgba(6,182,212,0.4); }
+    .arch-arrow { text-align: center; color: #374151; font-size: 18px; margin: 4px 0; }
+
+    /* ── FLOW DIAGRAM ── */
+    .flow { display: flex; align-items: center; flex-wrap: wrap; gap: 0; max-width: 1050px; width: 100%; }
+    .flow-step {
+      display: flex; flex-direction: column; align-items: center;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 18px; min-width: 130px; text-align: center;
+    }
+    .flow-step .fs-icon { font-size: 22px; margin-bottom: 6px; }
+    .flow-step .fs-label { font-size: 12px; font-weight: 600; color: #e2e8f0; }
+    .flow-step .fs-sub { font-size: 10px; color: var(--muted); margin-top: 3px; }
+    .flow-arrow { font-size: 20px; color: #374151; padding: 0 6px; }
+    .flow-step.highlight { border-color: rgba(99,102,241,0.6); background: rgba(99,102,241,0.08); }
+    .flow-step.highlight-g { border-color: rgba(16,185,129,0.6); background: rgba(16,185,129,0.08); }
+    .flow-step.highlight-y { border-color: rgba(245,158,11,0.6); background: rgba(245,158,11,0.08); }
+    .flow-step.highlight-r { border-color: rgba(239,68,68,0.6); background: rgba(239,68,68,0.08); }
+
+    /* ── FULL-WIDTH CONTENT ── */
+    .full-content { width: 100%; max-width: 1100px; }
+    .slide-inner { width: 100%; max-width: 1100px; display: flex; flex-direction: column; align-items: flex-start; }
+
+    /* ── TABLE ── */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .data-table th { background: rgba(99,102,241,0.15); color: #a5b4fc; padding: 10px 14px; text-align: left; font-weight: 600; font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; }
+    .data-table td { padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--muted); }
+    .data-table tr:hover td { background: rgba(99,102,241,0.05); }
+    .badge-status {
+      display: inline-block; padding: 2px 10px; border-radius: 50px; font-size: 11px; font-weight: 600;
+    }
+    .badge-pass { background: rgba(16,185,129,0.15); color: #6ee7b7; }
+    .badge-warn { background: rgba(245,158,11,0.15); color: #fde68a; }
+    .badge-info { background: rgba(6,182,212,0.15); color: #a5f3fc; }
+
+    /* ── CODE BLOCK ── */
+    .code-block {
+      background: #0d1117; border: 1px solid #21262d; border-radius: 10px;
+      padding: 16px 20px; font-family: 'Fira Code', monospace; font-size: 12px;
+      color: #e6edf3; line-height: 1.7; overflow: auto; max-height: 260px;
+    }
+    .code-block .kw  { color: #ff7b72; }
+    .code-block .fn  { color: #d2a8ff; }
+    .code-block .str { color: #a5d6ff; }
+    .code-block .cm  { color: #8b949e; }
+    .code-block .num { color: #79c0ff; }
+
+    /* ── STATE MACHINE ── */
+    .state-machine { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 1050px; }
+    .sm-row { display: flex; align-items: center; gap: 8px; }
+    .sm-state {
+      border-radius: 10px; padding: 10px 18px; font-size: 13px; font-weight: 600;
+      text-align: center; min-width: 180px; border: 2px solid;
+    }
+    .sm-state.pending  { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.5); color: #fde68a; }
+    .sm-state.active   { background: rgba(99,102,241,0.1); border-color: rgba(99,102,241,0.5); color: #c7d2fe; }
+    .sm-state.returning{ background: rgba(6,182,212,0.1); border-color: rgba(6,182,212,0.5); color: #a5f3fc; }
+    .sm-state.done     { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.5); color: #6ee7b7; }
+    .sm-state.rejected { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.5); color: #fca5a5; }
+    .sm-arrow { font-size: 18px; color: #4b5563; }
+    .sm-action { font-size: 11px; color: var(--muted); text-align: center; min-width: 100px; }
+
+    /* ── HERO BG GLOW ── */
+    .glow-bg {
+      position: absolute; inset: 0; z-index: 0; overflow: hidden; border-radius: inherit;
+      pointer-events: none;
+    }
+    .glow-bg::before {
+      content: '';
+      position: absolute; width: 600px; height: 600px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%);
+      top: -200px; left: -200px;
+    }
+    .glow-bg::after {
+      content: '';
+      position: absolute; width: 500px; height: 500px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(6,182,212,0.08) 0%, transparent 70%);
+      bottom: -150px; right: -100px;
+    }
+    .slide-title { position: relative; z-index: 1; }
+
+    /* ── COMPARISON ── */
+    .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; max-width: 900px; }
+    .compare-col { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+    .compare-col h3 { font-size: 14px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap-8px; }
+    .compare-col.old h3 { color: #fca5a5; }
+    .compare-col.new h3 { color: #6ee7b7; }
+    .compare-col ul { list-style: none; }
+    .compare-col ul li { font-size: 13px; color: var(--muted); padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; }
+    .compare-col.old ul li::before { content: '✕'; color: #ef4444; flex-shrink: 0; }
+    .compare-col.new ul li::before { content: '✓'; color: #10b981; flex-shrink: 0; }
+
+    /* ── FEATURE LIST ── */
+    .feature-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; max-width: 1050px; }
+    .feat-item {
+      display: flex; align-items: flex-start; gap: 14px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 16px 18px;
+    }
+    .feat-icon { font-size: 22px; flex-shrink: 0; }
+    .feat-text h4 { font-size: 14px; font-weight: 700; color: #e2e8f0; margin-bottom: 4px; }
+    .feat-text p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+    /* ── MGMT TABLE ── */
+    .mgmt-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; width: 100%; max-width: 1050px; }
+    .mgmt-card { background: var(--surface); border-radius: 12px; border: 1px solid var(--border); padding: 18px; }
+    .mgmt-card h4 { font-size: 13px; font-weight: 700; color: #a5b4fc; margin-bottom: 10px; }
+    .mgmt-card ul { list-style: none; }
+    .mgmt-card ul li { font-size: 12px; color: var(--muted); padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .mgmt-card ul li:last-child { border-bottom: none; }
+
+    /* ── RESULT STAT ── */
+    .result-stats { display: flex; gap: 16px; width: 100%; max-width: 1050px; flex-wrap: wrap; }
+    .stat-big { flex: 1; min-width: 160px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px; text-align: center; }
+    .stat-big .num { font-size: 42px; font-weight: 900; line-height: 1; margin-bottom: 6px; }
+    .stat-big .num.green { color: var(--green); }
+    .stat-big .num.yellow { color: var(--yellow); }
+    .stat-big .num.cyan { color: var(--accent3); }
+    .stat-big .num.purple { color: var(--accent2); }
+    .stat-big .lbl { font-size: 12px; color: var(--muted); }
+
+    /* DB SCHEMA */
+    .db-schema { display: flex; gap: 14px; flex-wrap: wrap; width: 100%; max-width: 1050px; }
+    .db-table { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; min-width: 170px; flex: 1; }
+    .db-table .db-head { background: rgba(99,102,241,0.2); border-radius: 10px 10px 0 0; padding: 8px 14px; font-size: 12px; font-weight: 700; color: #a5b4fc; }
+    .db-table .db-row { padding: 5px 14px; font-size: 11px; color: var(--muted); border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; gap: 8px; }
+    .db-table .db-row span { color: #6b7280; font-style: italic; }
+    .db-table .db-row.pk { color: #fde68a; }
+    .db-table .db-row.fk { color: #a5f3fc; }
+
+    /* final closing slide */
+    .closing { text-align: center; max-width: 800px; }
+    .closing h1 { font-size: clamp(36px, 5vw, 60px); font-weight: 900; line-height: 1.1; background: linear-gradient(135deg, #a5b4fc, #06b6d4, #10b981); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 20px; }
+    .closing p { font-size: 16px; color: var(--muted); }
+
+    /* two col layout */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; width: 100%; max-width: 1100px; align-items: start; }
+
+    /* scrollable inner */
+    .slide-scroll { overflow-y: auto; max-height: calc(100vh - 140px); padding-right: 4px; scrollbar-width: thin; scrollbar-color: #374151 transparent; }
+
+    /* slide heading block */
+    .hd { margin-bottom: 24px; }
+
+    /* override for specific slides */
+    .slide.s-full { padding: 40px 60px; justify-content: flex-start; }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="dots"></div>
+
+<div id="deck">
+
+  <!-- ═══════════════════════════════ SLIDE 1: TITLE ═══════════════════════════════ -->
+  <div class="slide active" id="s0">
+    <div class="glow-bg"></div>
+    <div class="slide-title">
+      <div class="badge">📚 Sistem Informasi Perpustakaan</div>
+      <h1>Sistem Peminjaman<br />Buku Perpustakaan</h1>
+      <p class="subtitle">
+        Sebuah platform digital berbasis web untuk mengelola peminjaman & pengembalian buku
+        dengan sistem approval berlapis, manajemen stok real-time, dan kalkulasi denda otomatis.
+      </p>
+      <div class="meta">
+        <div class="meta-item">🛠️ <span>Laravel 12 + TailwindCSS + Alpine.js</span></div>
+        <div class="meta-item">🗄️ <span>MySQL + Eloquent ORM</span></div>
+        <div class="meta-item">⚡ <span>Vite Build Tool</span></div>
+        <div class="meta-item">👥 <span>Role-Based Access Control</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 2: LATAR BELAKANG ═══════════════════════════════ -->
+  <div class="slide" id="s1">
+    <div class="slide-inner">
+      <div class="hd">
+        <div class="section-num">01 — Latar Belakang</div>
+        <div class="section-title">Mengapa Sistem Ini Dibangun?</div>
+        <div class="section-sub">Perpustakaan masih bergantung pada pencatatan manual yang rawan kesalahan, tidak transparan, dan sulit diaudit.</div>
+      </div>
+      <div class="cards cols-3">
+        <div class="card accent-red">
+          <div class="icon">📋</div>
+          <h3>Pencatatan Manual</h3>
+          <p>Proses peminjaman masih dicatat di buku besar, rentan kehilangan data dan human-error.</p>
+        </div>
+        <div class="card accent-yellow">
+          <div class="icon">⏰</div>
+          <h3>Tidak Ada Monitoring</h3>
+          <p>Sulit memantau buku yang sedang dipinjam, tenggat waktu, dan status pengembalian secara real-time.</p>
+        </div>
+        <div class="card accent-orange">
+          <div class="icon">💰</div>
+          <h3>Denda Tidak Konsisten</h3>
+          <p>Perhitungan denda keterlambatan dilakukan manual sehingga hasilnya tidak akurat dan tidak transparan.</p>
+        </div>
+        <div class="card accent-blue">
+          <div class="icon">📦</div>
+          <h3>Stok Tidak Terkontrol</h3>
+          <p>Tidak ada sistem untuk mencegah peminjaman berlebih (over-borrowing) saat stok kritis.</p>
+        </div>
+        <div class="card accent-purple">
+          <div class="icon">🔐</div>
+          <h3>Tidak Ada Otorisasi</h3>
+          <p>Siapa saja dapat mengubah data buku atau anggota tanpa sistem hak akses yang jelas.</p>
+        </div>
+        <div class="card accent-cyan">
+          <div class="icon">📊</div>
+          <h3>Laporan Sulit</h3>
+          <p>Menghasilkan laporan peminjaman membutuhkan waktu lama karena data tersebar dan tidak terstruktur.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 3: TUJUAN ═══════════════════════════════ -->
+  <div class="slide" id="s2">
+    <div class="slide-inner">
+      <div class="hd">
+        <div class="section-num">02 — Tujuan Sistem</div>
+        <div class="section-title">Apa yang Ingin Dicapai?</div>
+      </div>
+      <div class="cards cols-2">
+        <div class="card accent-green">
+          <div class="icon">✅</div>
+          <h3>Digitalisasi Proses Peminjaman</h3>
+          <p>Menggantikan sistem manual dengan platform web yang efisien, terdokumentasi, dan dapat diakses kapan saja.</p>
+        </div>
+        <div class="card accent-blue">
+          <div class="icon">🔄</div>
+          <h3>Approval Workflow Berlapis</h3>
+          <p>Admin dapat menyetujui atau menolak setiap permintaan pinjam dan kembali, memastikan akuntabilitas penuh.</p>
+        </div>
+        <div class="card accent-purple">
+          <div class="icon">📦</div>
+          <h3>Manajemen Stok Real-Time</h3>
+          <p>Stok buku dikurangi saat pinjam disetujui dan dikembalikan saat pengembalian disetujui, mencegah over-borrowing.</p>
+        </div>
+        <div class="card accent-cyan">
+          <div class="icon">💸</div>
+          <h3>Kalkulasi Denda Otomatis</h3>
+          <p>Sistem otomatis menghitung denda Rp 5.000/hari untuk keterlambatan saat admin menyetujui pengembalian.</p>
+        </div>
+        <div class="card accent-yellow">
+          <div class="icon">📈</div>
+          <h3>Laporan & Ekspor Data</h3>
+          <p>Admin dapat melihat laporan lengkap dan mengekspor data peminjaman ke format CSV dengan satu klik.</p>
+        </div>
+        <div class="card accent-orange">
+          <div class="icon">🛡️</div>
+          <h3>Keamanan Berbasis Peran</h3>
+          <p>Role-Based Access Control (RBAC) memastikan Admin dan User hanya dapat mengakses fitur yang relevan.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 4: RUANG LINGKUP & PENGGUNA ═══════════════════════════════ -->
+  <div class="slide" id="s3">
+    <div class="slide-inner">
+      <div class="hd">
+        <div class="section-num">03 — Ruang Lingkup & Pengguna</div>
+        <div class="section-title">Siapa Pengguna Sistem?</div>
+      </div>
+      <div class="two-col">
+        <div>
+          <div class="card accent-blue" style="margin-bottom:14px">
+            <div class="icon">👑</div>
+            <h3>Admin (Pustakawan)</h3>
+            <p style="margin-bottom:12px">Memiliki akses penuh ke seluruh fitur sistem.</p>
+            <ul style="list-style:none;font-size:13px;color:var(--muted)">
+              <li style="padding:4px 0">✓ Dashboard statistik global</li>
+              <li style="padding:4px 0">✓ CRUD buku & kategori</li>
+              <li style="padding:4px 0">✓ Kelola anggota (promote, hapus)</li>
+              <li style="padding:4px 0">✓ Setujui / tolak peminjaman</li>
+              <li style="padding:4px 0">✓ Setujui pengembalian + hitung denda</li>
+              <li style="padding:4px 0">✓ Laporan + ekspor CSV</li>
+              <li style="padding:4px 0">✓ Filter & cari data peminjaman</li>
+            </ul>
+          </div>
+        </div>
+        <div>
+          <div class="card accent-green" style="margin-bottom:14px">
+            <div class="icon">📖</div>
+            <h3>User (Mahasiswa/Anggota)</h3>
+            <p style="margin-bottom:12px">Akses terbatas sesuai peran anggota perpustakaan.</p>
+            <ul style="list-style:none;font-size:13px;color:var(--muted)">
+              <li style="padding:4px 0">✓ Dashboard status pribadi</li>
+              <li style="padding:4px 0">✓ Lihat & cari katalog buku</li>
+              <li style="padding:4px 0">✓ Request peminjaman buku</li>
+              <li style="padding:4px 0">✓ Request pengembalian buku</li>
+              <li style="padding:4px 0">✓ Lihat riwayat peminjaman sendiri</li>
+              <li style="padding:4px 0">✓ Lihat status denda</li>
+              <li style="padding:4px 0">✗ Tidak bisa akses data orang lain</li>
+            </ul>
+          </div>
+          <div class="card" style="background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.3)">
+            <h3 style="color:#fca5a5;font-size:13px">🔒 Ruang Lingkup</h3>
+            <p style="font-size:12px">Sistem ini mencakup: manajemen koleksi buku, kategori, anggota, peminjaman, pengembalian, denda, dan laporan. <strong style="color:#e2e8f0">Tidak mencakup</strong>: pembayaran online, notifikasi email/SMS, atau manajemen aset fisik lainnya.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 5: TIMELINE PENGEMBANGAN ═══════════════════════════════ -->
+  <div class="slide" id="s4">
+    <div class="slide-inner">
+      <div class="hd">
+        <div class="section-num">04 — Perjalanan Pengembangan</div>
+        <div class="section-title">4 Deliverable, 1 Final Product</div>
+        <div class="section-sub">Sistem dibangun secara iteratif melalui empat fase dengan mekanisme feedback di setiap tahap.</div>
+      </div>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-body">
+            <div class="tl-tag">D1</div>
+            <div class="tl-title">SRS</div>
+            <div class="tl-desc">Software Requirements Specification. Mendefinisikan kebutuhan fungsional & non-fungsional, use-case diagram, dan batasan sistem.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-body">
+            <div class="tl-tag">D2</div>
+            <div class="tl-title">Desain Sistem</div>
+            <div class="tl-desc">ERD, arsitektur sistem (MVC), wireframe UI, alur data, dan desain skema database MySQL.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-body">
+            <div class="tl-tag">D3</div>
+            <div class="tl-title">MVP + Testing</div>
+            <div class="tl-desc">Minimum Viable Product dengan fitur inti: auth, CRUD buku, peminjaman dasar. Pengujian awal dilakukan, ditemukan beberapa gap.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-body">
+            <div class="tl-tag">D4</div>
+            <div class="tl-title">Final Product</div>
+            <div class="tl-desc">Sistem lengkap: approval workflow, kalkulasi denda, ekspor CSV, RBAC penuh, soft-delete, dan perlindungan data terintegrasi.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cards cols-4" style="margin-top:40px">
+        <div class="card" style="padding:16px">
+          <div style="font-size:11px;color:#a5b4fc;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:8px">D1 – SRS</div>
+          <ul style="list-style:none;font-size:12px;color:var(--muted)">
+            <li style="padding:2px 0">• Identifikasi kebutuhan</li>
+            <li style="padding:2px 0">• Use case diagram</li>
+            <li style="padding:2px 0">• Stakeholder analysis</li>
+            <li style="padding:2px 0">• Functional & non-functional req</li>
+          </ul>
+        </div>
+        <div class="card" style="padding:16px">
+          <div style="font-size:11px;color:#67e8f9;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:8px">D2 – Desain</div>
+          <ul style="list-style:none;font-size:12px;color:var(--muted)">
+            <li style="padding:2px 0">• ERD (4 entitas)</li>
+            <li style="padding:2px 0">• Arsitektur MVC</li>
+            <li style="padding:2px 0">• Wireframe per halaman</li>
+            <li style="padding:2px 0">• Skema DB MySQL</li>
+          </ul>
+        </div>
+        <div class="card" style="padding:16px">
+          <div style="font-size:11px;color:#6ee7b7;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:8px">D3 – MVP</div>
+          <ul style="list-style:none;font-size:12px;color:var(--muted)">
+            <li style="padding:2px 0">• Auth + CRUD buku</li>
+            <li style="padding:2px 0">• Peminjaman dasar</li>
+            <li style="padding:2px 0">• SQLite (dev)</li>
+            <li style="padding:2px 0">• Testing pertama</li>
+          </ul>
+        </div>
+        <div class="card" style="padding:16px">
+          <div style="font-size:11px;color:#fde68a;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:8px">D4 – Final</div>
+          <ul style="list-style:none;font-size:12px;color:var(--muted)">
+            <li style="padding:2px 0">• Approval workflow</li>
+            <li style="padding:2px 0">• RBAC + denda</li>
+            <li style="padding:2px 0">• MySQL migration</li>
+            <li style="padding:2px 0">• CSV export + filter</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 6: TEKNOLOGI & ARSITEKTUR ═══════════════════════════════ -->
+  <div class="slide" id="s5">
+    <div class="slide-inner">
+      <div class="hd">
+        <div class="section-num">05 — Teknologi & Arsitektur</div>
+        <div class="section-title">Stack Teknologi yang Digunakan</div>
+      </div>
+      <div class="arch-box">
+        <div class="arch-layer frontend">
+          <div class="arch-label">🎨 Frontend</div>
+          <div class="arch-chips">
+            <span class="chip blue">Blade Template Engine</span>
+            <span class="chip blue">TailwindCSS 3</span>
+            <span class="chip blue">Alpine.js 3</span>
+            <span class="chip blue">Vite (Build Tool)</span>
+            <span class="chip purple">Inter Font (Google Fonts)</span>
+          </div>
+        </div>
+        <div class="arch-arrow">↕ HTTP Request / Blade Render</div>
+        <div class="arch-layer backend">
+          <div class="arch-label">⚙️ Backend</div>
+          <div class="arch-chips">
+            <span class="chip green">Laravel 12 (PHP 8.2+)</span>
+            <span class="chip green">Laravel Breeze (Auth)</span>
+            <span class="chip green">Eloquent ORM</span>
+            <span class="chip green">Carbon (Date)</span>
+            <span class="chip green">Laravel Queue / Pail</span>
+            <span class="chip cyan">MVC Pattern</span>
+          </div>
+        </div>
+        <div class="arch-arrow">↕ PDO / Eloquent Query Builder</div>
+        <div class="arch-layer database">
+          <div class="arch-label">🗄️ Database</div>
+          <div class="arch-chips">
+            <span class="chip yellow">MySQL (Production)</span>
+            <span class="chip yellow">4 Core Tables</span>
+            <span class="chip yellow">Eloquent Migrations</span>
+            <span class="chip yellow">Foreign Key Constraints</span>
+            <span class="chip yellow">Soft Deletes (Books)</span>
+          </div>
+        </div>
+      </div>
+      <div class="cards cols-3" style="margin-top:16px">
+        <div class="card" style="padding:14px">
+          <h3 style="font-size:13px;margin-bottom:8px">🏗️ Pola Arsitektur</h3>
+          <p>Model-View-Controller (MVC) dengan pemisahan jelas antara logika bisnis, presentasi, dan data.</p>
+        </div>
+        <div class="card" style="padding:14px">
+          <h3 style="font-size:13px;margin-bottom:8px">🔒 Keamanan</h3>
+          <p>CSRF Protection, middleware Auth, Role Check manual pada setiap action kritis (Bouncer Pattern).</p>
+        </div>
+        <div class="card" style="padding:14px">
+          <h3 style="font-size:13px;margin-bottom:8px">🚀 Dev Workflow</h3>
+          <p>Concurrently menjalankan PHP server, Queue, Pail logger, dan Vite dev server secara paralel.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 7: DATABASE SCHEMA ═══════════════════════════════ -->
+  <div class="slide" id="s6">
+    <div class="slide-inner">
+      <div class="hd">
+        <div class="section-num">06 — Desain Database</div>
+        <div class="section-title">Skema Database (ERD Sederhana)</div>
+        <div class="section-sub">4 tabel inti dengan relasi yang terdefinisi jelas menggunakan Foreign Key Constraints.</div>
+      </div>
+      <div class="db-schema">
+        <div class="db-table">
+          <div class="db-head">👤 users</div>
+          <div class="db-row pk">id <span>PK, bigint</span></div>
+          <div class="db-row">name <span>string</span></div>
+          <div class="db-row">email <span>string, unique</span></div>
+          <div class="db-row">password <span>hashed</span></div>
+          <div class="db-row" style="color:#fde68a">role <span>admin | user</span></div>
+          <div class="db-row">email_verified_at <span>timestamp</span></div>
+          <div class="db-row">created_at <span>timestamp</span></div>
+        </div>
+        <div style="display:flex;align-items:center;font-size:20px;color:#4b5563;padding:0 4px">→</div>
+        <div class="db-table">
+          <div class="db-head">📂 categories</div>
+          <div class="db-row pk">id <span>PK, bigint</span></div>
+          <div class="db-row">nama_kategori <span>string</span></div>
+          <div class="db-row">created_at <span>timestamp</span></div>
+          <div class="db-row">updated_at <span>timestamp</span></div>
+        </div>
+        <div style="display:flex;align-items:center;font-size:20px;color:#4b5563;padding:0 4px">→</div>
+        <div class="db-table">
+          <div class="db-head">📖 books</div>
+          <div class="db-row pk">id <span>PK, bigint</span></div>
+          <div class="db-row">judul_buku <span>string</span></div>
+          <div class="db-row">penulis <span>string, nullable</span></div>
+          <div class="db-row">isbn <span>string, unique</span></div>
+          <div class="db-row fk">category_id <span>FK → categories</span></div>
+          <div class="db-row" style="color:#fde68a">stok <span>integer</span></div>
+          <div class="db-row">deleted_at <span>soft delete</span></div>
+        </div>
+        <div style="display:flex;align-items:center;font-size:20px;color:#4b5563;padding:0 4px">→</div>
+        <div class="db-table">
+          <div class="db-head">📋 borrowings</div>
+          <div class="db-row pk">id <span>PK, bigint</span></div>
+          <div class="db-row fk">user_id <span>FK → users</span></div>
+          <div class="db-row fk">book_id <span>FK → books</span></div>
+          <div class="db-row">jumlah <span>integer, default 1</span></div>
+          <div class="db-row">tanggal_pinjam <span>date</span></div>
+          <div class="db-row" style="color:#fca5a5">tenggat_waktu <span>date (+7 days)</span></div>
+          <div class="db-row" style="color:#fde68a">denda <span>integer (Rp)</span></div>
+          <div class="db-row" style="color:#6ee7b7">status <span>state machine</span></div>
+          <div class="db-row">approved_at <span>timestamp</span></div>
+        </div>
+      </div>
+      <div style="margin-top:16px;width:100%;max-width:1050px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 20px">
+        <div style="font-size:12px;color:var(--muted);line-height:1.8">
+          <strong style="color:#a5b4fc">Relasi:</strong>
+          &nbsp;User ←→ Borrowings (1:N) &nbsp;|&nbsp;
+          Book ←→ Borrowings (1:N) &nbsp;|&nbsp;
+          Category ←→ Books (1:N) &nbsp;|&nbsp;
+          <strong style="color:#6ee7b7">Soft Delete</strong> pada Books (buku yang dihapus tidak langsung hilang dari DB).
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 8: FITUR UTAMA ═══════════════════════════════ -->
+  <div class="slide" id="s7">
+    <div class="slide-inner">
+      <div class="hd">
+        <div class="section-num">07 — Fitur Utama Final Product</div>
+        <div class="section-title">Apa Saja yang Bisa Dilakukan?</div>
+      </div>
+      <div class="feature-list">
+        <div class="feat-item">
+          <div class="feat-icon">🔐</div>
+          <div class="feat-text">
+            <h4>Autentikasi & RBAC</h4>
+            <p>Login/register via Laravel Breeze. Role admin vs user menentukan akses ke seluruh halaman dan aksi sistem.</p>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">📚</div>
+          <div class="feat-text">
+            <h4>CRUD Buku & Kategori</h4>
+            <p>Admin dapat tambah, edit, hapus (dengan Soft Delete + proteksi buku aktif) buku dan kategori. Filter by kategori & search.</p>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">✅</div>
+          <div class="feat-text">
+            <h4>Approval Workflow Peminjaman</h4>
+            <p>User request → status "Menunggu" → Admin approve/reject → status "Dipinjam". Stok dikurangi saat disetujui.</p>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">🔄</div>
+          <div class="feat-text">
+            <h4>Approval Workflow Pengembalian</h4>
+            <p>User klik Kembalikan → status "Menunggu Kembali" → Admin setujui → stok dikembalikan + denda dihitung.</p>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">💸</div>
+          <div class="feat-text">
+            <h4>Kalkulasi Denda Otomatis</h4>
+            <p>Saat pengembalian disetujui, sistem menghitung Rp 5.000/hari keterlambatan menggunakan Carbon date diff.</p>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">📊</div>
+          <div class="feat-text">
+            <h4>Dashboard Statistik</h4>
+            <p>Admin: 8 statistik global (total user, buku, peminjaman, pending, aktif, terlambat, denda, tunggu kembali). User: statistik pribadi.</p>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">🔍</div>
+          <div class="feat-text">
+            <h4>Filter & Pencarian Laporan</h4>
+            <p>Admin dapat filter laporan peminjaman by: nama peminjam, status, dan flag khusus "buku terlambat".</p>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">📥</div>
+          <div class="feat-text">
+            <h4>Ekspor CSV</h4>
+            <p>Export seluruh data laporan peminjaman ke file CSV UTF-8 BOM dengan satu klik, siap dibuka di Excel.</p>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">👥</div>
+          <div class="feat-text">
+            <h4>Manajemen Anggota</h4>
+            <p>Admin dapat melihat daftar anggota, promote ke Admin, atau hapus akun (dengan proteksi: tidak bisa hapus jika masih ada peminjaman aktif).</p>
+          </div>
+        </div>
+        <div class="feat-item">
+          <div class="feat-icon">🛡️</div>
+          <div class="feat-text">
+            <h4>Proteksi Data Terintegrasi</h4>
+            <p>Buku tidak bisa dihapus jika sedang dipinjam. Akun user tidak bisa dihapus jika masih ada pinjaman aktif. Soft Delete pada buku.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 9: ALUR SISTEM PENGEMBANGAN ═══════════════════════════════ -->
+  <div class="slide" id="s8">
+    <div class="slide-inner">
+      <div class="hd">
+        <div class="section-num">08 — Alur Pengembangan Sistem</div>
+        <div class="section-title">Bagaimana Request Diproses?</div>
+        <div class="section-sub">Arsitektur MVC Laravel menangani setiap HTTP request melalui lapisan yang terstruktur.</div>
+      </div>
+      <div class="flow" style="flex-wrap:nowrap;overflow-x:auto;padding-bottom:8px">
+        <div class="flow-step highlight">
+          <div class="fs-icon">🌐</div>
+          <div class="fs-label">Browser</div>
+          <div class="fs-sub">HTTP Request</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="fs-icon">🛣️</div>
+          <div class="fs-label">Routes</div>
+          <div class="fs-sub">web.php</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="fs-icon">🔒</div>
+          <div class="fs-label">Middleware</div>
+          <div class="fs-sub">Auth / Role</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step highlight">
+          <div class="fs-icon">⚙️</div>
+          <div class="fs-label">Controller</div>
+          <div class="fs-sub">Business Logic</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="fs-icon">📦</div>
+          <div class="fs-label">Model</div>
+          <div class="fs-sub">Eloquent ORM</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="fs-icon">🗄️</div>
+          <div class="fs-label">MySQL DB</div>
+          <div class="fs-sub">Query Execute</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step highlight-g">
+          <div class="fs-icon">🎨</div>
+          <div class="fs-label">Blade View</div>
+          <div class="fs-sub">HTML Response</div>
+        </div>
+      </div>
+
+      <div style="margin-top:24px;width:100%;max-width:1050px">
+        <div style="font-size:13px;color:#a5b4fc;font-weight:700;margin-bottom:12px">Controller yang Terlibat:</div>
+        <div class="cards cols-3" style="gap:10px">
+          <div class="card" style="padding:14px">
+            <h3 style="font-size:12px;color:#a5b4fc">DashboardController</h3>
+            <p style="font-size:11px">Menampilkan statistik berbeda berdasarkan role user (admin vs user).</p>
+          </div>
+          <div class="card" style="padding:14px">
+            <h3 style="font-size:12px;color:#6ee7b7">BookController</h3>
+            <p style="font-size:11px">CRUD buku, filter kategori, pencarian, soft-delete dengan proteksi peminjaman aktif.</p>
+          </div>
+          <div class="card" style="padding:14px">
+            <h3 style="font-size:12px;color:#fde68a">BorrowingController</h3>
+            <p style="font-size:11px">Core logic: store, return, approve borrow/return, reject, laporan admin, export CSV.</p>
+          </div>
+          <div class="card" style="padding:14px">
+            <h3 style="font-size:12px;color:#a5f3fc">CategoryController</h3>
+            <p style="font-size:11px">CRUD kategori buku oleh admin.</p>
+          </div>
+          <div class="card" style="padding:14px">
+            <h3 style="font-size:12px;color:#fca5a5">UserController</h3>
+            <p style="font-size:11px">Manajemen anggota: list, promote ke admin, hapus dengan proteksi peminjaman aktif.</p>
+          </div>
+          <div class="card" style="padding:14px">
+            <h3 style="font-size:12px;color:#ddd6fe">ProfileController</h3>
+            <p style="font-size:11px">Edit profil, update, dan hapus akun sendiri.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 10: ALUR ADMIN ═══════════════════════════════ -->
+  <div class="slide" id="s9">
+    <div class="slide-inner">
+      <div class="hd">
+        <div class="section-num">09 — Alur Admin</div>
+        <div class="section-title">Apa yang Dilakukan Admin?</div>
+        <div class="section-sub">Admin adalah pusat kendali sistem. Semua keputusan approval melewati admin.</div>
+      </div>
+
+      <div style="width:100%;max-width:1050px">
+        <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px">
+          <div>
+            <div class="card accent-blue" style="margin-bottom:12px;padding:16px">
+              <h3 style="font-size:13px;margin-bottom:10px">🚪 Login sebagai Admin</h3>
+              <p style="font-size:12px">Laravel Breeze auth. Sistem memeriksa kolom <code style="background:#1e293b;padding:2px 6px;border-radius:4px;font-size:11px">role = 'admin'</code> dan mengarahkan ke Admin Dashboard.</p>
+            </div>
+            <div class="card" style="padding:16px;margin-bottom:12px">
+              <h3 style="font-size:13px;margin-bottom:10px;color:#e2e8f0">📊 Dashboard Admin</h3>
+              <ul style="list-style:none;font-size:12px;color:var(--muted)">
+                <li style="padding:3px 0">📌 Total Users, Books</li>
+                <li style="padding:3px 0">📌 Total Peminjaman</li>
+                <li style="padding:3px 0">📌 Pending Approvals</li>
+                <li style="padding:3px 0">📌 Aktif & Terlambat</li>
+                <li style="padding:3px 0">📌 Total Denda Terkumpul</li>
+                <li style="padding:3px 0">📌 Menunggu Pengembalian</li>
+              </ul>
+            </div>
+          </div>
+          <div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px">
+                <div style="font-size:20px">📚</div>
+                <div>
+                  <div style="font-size:13px;font-weight:700;color:#e2e8f0">Kelola Buku</div>
+                  <div style="font-size:11px;color:var(--muted)">Tambah buku baru → isi judul/penulis/ISBN/kategori/stok → Simpan. Edit/Hapus buku (dengan proteksi jika sedang dipinjam)</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px">
+                <div style="font-size:20px">📂</div>
+                <div>
+                  <div style="font-size:13px;font-weight:700;color:#e2e8f0">Kelola Kategori</div>
+                  <div style="font-size:11px;color:var(--muted)">Tambah/hapus kategori buku. Digunakan untuk filter di halaman katalog.</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:12px 16px">
+                <div style="font-size:20px">⏳</div>
+                <div>
+                  <div style="font-size:13px;font-weight:700;color:#fde68a">Approval Pinjam</div>
+                  <div style="font-size:11px;color:var(--muted)">Di halaman Laporan Peminjaman → lihat request "Menunggu Persetujuan Pinjam" → klik Setujui (stok dikurangi, status → Dipinjam) atau Tolak (status → Ditolak).</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:12px 16px">
+                <div style="font-size:20px">✅</div>
+                <div>
+                  <div style="font-size:13px;font-weight:700;color:#6ee7b7">Approval Kembali + Denda</div>
+                  <div style="font-size:11px;color:var(--muted)">Lihat request "Menunggu Persetujuan Kembali" → klik Setujui Kembali → sistem hitung denda otomatis → stok dikembalikan → status → Dikembalikan.</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.3);border-radius:10px;padding:12px 16px">
+                <div style="font-size:20px">📥</div>
+                <div>
+                  <div style="font-size:13px;font-weight:700;color:#a5f3fc">Laporan & Ekspor CSV</div>
+                  <div style="font-size:11px;color:var(--muted)">Filter by nama/status/overdue → lihat semua peminjaman → klik Export CSV untuk download laporan lengkap.</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.3);border-radius:10px;padding:12px 16px">
+                <div style="font-size:20px">👥</div>
+                <div>
+                  <div style="font-size:13px;font-weight:700;color:#ddd6fe">Manajemen Anggota</div>
+                  <div style="font-size:11px;color:var(--muted)">Lihat daftar anggota (role=user) → promote ke Admin → hapus akun (dengan pengecekan tidak ada pinjaman aktif).</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 11: ALUR USER ═══════════════════════════════ -->
+  <div class="slide" id="s10">
+    <div class="slide-inner">
+      <div class="hd">
+        <div class="section-num">10 — Alur User (Mahasiswa)</div>
+        <div class="section-title">Perjalanan Anggota Perpustakaan</div>
+        <div class="section-sub">User memiliki akses terbatas, fokus pada aktivitas peminjaman dan pemantauan status sendiri.</div>
+      </div>
+
+      <div style="width:100%;max-width:1050px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;align-items:center">
+            <div style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.4);border-radius:10px;padding:12px;text-align:center">
+              <div style="font-size:22px;margin-bottom:4px">📝</div>
+              <div style="font-size:11px;font-weight:700;color:#a5b4fc">Register</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px">Daftar akun baru</div>
+            </div>
+            <div style="text-align:center;color:#4b5563;font-size:20px">→</div>
+            <div style="background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.4);border-radius:10px;padding:12px;text-align:center">
+              <div style="font-size:22px;margin-bottom:4px">📊</div>
+              <div style="font-size:11px;font-weight:700;color:#a5f3fc">Dashboard</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px">Statistik pribadi</div>
+            </div>
+            <div style="text-align:center;color:#4b5563;font-size:20px">→</div>
+            <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.4);border-radius:10px;padding:12px;text-align:center">
+              <div style="font-size:22px;margin-bottom:4px">🔍</div>
+              <div style="font-size:11px;font-weight:700;color:#6ee7b7">Katalog Buku</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px">Search + filter kategori</div>
+            </div>
+            <div style="text-align:center;color:#4b5563;font-size:20px">→</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;align-items:center">
+            <div style="text-align:center;color:#4b5563;font-size:20px">←</div>
+            <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.4);border-radius:10px;padding:12px;text-align:center">
+              <div style="font-size:22px;margin-bottom:4px">⏳</div>
+              <div style="font-size:11px;font-weight:700;color:#fde68a">Menunggu</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px">Admin review request</div>
+            </div>
+            <div style="text-align:center;color:#4b5563;font-size:20px">←</div>
+            <div style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.4);border-radius:10px;padding:12px;text-align:center">
+              <div style="font-size:22px;margin-bottom:4px">📋</div>
+              <div style="font-size:11px;font-weight:700;color:#c7d2fe">Request Pinjam</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px">Pilih buku + jumlah</div>
+            </div>
+            <div style="text-align:center;color:#4b5563;font-size:20px">←</div>
+            <div style="background:rgba(99,102,241,0.15);border:2px solid rgba(99,102,241,0.6);border-radius:10px;padding:12px;text-align:center">
+              <div style="font-size:22px;margin-bottom:4px">📖</div>
+              <div style="font-size:11px;font-weight:700;color:#a5b4fc">Pilih Buku</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px">Klik tombol Pinjam</div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin:4px 0">
+            <div style="height:2px;flex:1;background:rgba(255,255,255,0.06)"></div>
+            <div style="font-size:12px;color:var(--muted)">Setelah Admin Setujui</div>
+            <div style="height:2px;flex:1;background:rgba(255,255,255,0.06)"></div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;align-items:center">
+            <div style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.4);border-radius:10px;padding:12px;text-align:center">
+              <div style="font-size:22px;margin-bottom:4px">📚</div>
+              <div style="font-size:11px;font-weight:700;color:#c7d2fe">Buku Dipinjam</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px">Status: Dipinjam</div>
+            </div>
+            <div style="text-align:center;color:#4b5563;font-size:20px">→</div>
+            <div style="background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.4);border-radius:10px;padding:12px;text-align:center">
+              <div style="font-size:22px;margin-bottom:4px">🔄</div>
+              <div style="font-size:11px;font-weight:700;color:#a5f3fc">Request Kembali</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px">Klik Kembalikan</div>
+            </div>
+            <div style="text-align:center;color:#4b5563;font-size:20px">→</div>
+            <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.4);border-radius:10px;padding:12px;text-align:center">
+              <div style="font-size:22px;margin-bottom:4px">⏳</div>
+              <div style="font-size:11px;font-weight:700;color:#fde68a">Menunggu Kembali</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px">Admin verifikasi</div>
+            </div>
+            <div style="text-align:center;color:#4b5563;font-size:20px">→</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:14px;display:flex;align-items:center;gap:10px">
+              <div style="font-size:22px">✅</div>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:#6ee7b7">Dikembalikan (Tanpa Denda)</div>
+                <div style="font-size:11px;color:var(--muted)">Pengembalian tepat waktu atau sebelum tenggat. Stok dikembalikan ke sistem.</div>
+              </div>
+            </div>
+            <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:14px;display:flex;align-items:center;gap:10px">
+              <div style="font-size:22px">💰</div>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:#fca5a5">Dikembalikan + Denda</div>
+                <div style="font-size:11px;color:var(--muted)">Terlambat → sistem hitung Rp 5.000/hari × jumlah hari terlambat. Tercatat di riwayat.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px">
+          <div style="font-size:12px;color:var(--muted)">
+            📋 <strong style="color:#e2e8f0">Riwayat Peminjaman:</strong> User dapat melihat seluruh history peminjaman di halaman <code style="background:#1e293b;padding:2px 6px;border-radius:4px;font-size:11px">/riwayat-pinjam</code> — status, denda, tanggal pinjam, dan tenggat waktu semua tersedia.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 12: STATE MACHINE ═══════════════════════════════ -->
+  <div class="slide" id="s11">
+    <div class="slide-inner">
+      <div class="hd">
+        <div class="section-num">11 — Alur Status Peminjaman</div>
+        <div class="section-title">State Machine Peminjaman</div>
+        <div class="section-sub">Setiap peminjaman melewati serangkaian status yang terdefinisi ketat. Transisi hanya bisa terjadi melalui aksi yang sah.</div>
+      </div>
+      <div style="width:100%;max-width:1050px;display:flex;flex-direction:column;gap:12px">
+        <!-- Borrowing flow -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px">
+          <div style="font-size:12px;font-weight:700;color:#a5b4fc;margin-bottom:12px;letter-spacing:0.05em;text-transform:uppercase">📖 Alur Peminjaman</div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap;overflow-x:auto">
+            <div class="sm-state active" style="font-size:12px">📋 User: Request Pinjam</div>
+            <div class="sm-arrow">→</div>
+            <div style="text-align:center;min-width:90px"><div class="sm-state pending" style="font-size:11px">⏳ Menunggu Persetujuan Pinjam</div><div style="font-size:10px;color:var(--muted);margin-top:4px">Status baru di DB</div></div>
+            <div class="sm-arrow">→</div>
+            <div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+              <div class="sm-state done" style="font-size:11px;padding:8px 12px">✅ Admin: Setujui → Dipinjam<br/><span style="font-size:10px;font-weight:400;color:#a7f3d0">stok -= jumlah</span></div>
+              <div class="sm-state rejected" style="font-size:11px;padding:8px 12px">✕ Admin: Tolak → Ditolak</div>
+            </div>
+          </div>
+        </div>
+        <!-- Return flow -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px">
+          <div style="font-size:12px;font-weight:700;color:#6ee7b7;margin-bottom:12px;letter-spacing:0.05em;text-transform:uppercase">🔄 Alur Pengembalian</div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap;overflow-x:auto">
+            <div class="sm-state active" style="font-size:12px">📚 Status: Dipinjam</div>
+            <div class="sm-arrow">→</div>
+            <div style="text-align:center"><div class="sm-state pending" style="font-size:11px">🔄 User: Klik Kembalikan<br/>→ Menunggu Persetujuan Kembali</div></div>
+            <div class="sm-arrow">→</div>
+            <div class="sm-state done" style="font-size:11px">
+              ✅ Admin: Setujui Kembali<br/>
+              → Dikembalikan<br/>
+              <span style="font-size:10px;font-weight:400;color:#a7f3d0">stok += jumlah<br/>hitung denda</span>
+            </div>
+          </div>
+        </div>
+        <!-- Fine calc -->
+        <div style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:14px 20px">
+          <div style="font-size:12px;font-weight:700;color:#fca5a5;margin-bottom:8px">💸 Kalkulasi Denda (BorrowingController::approveReturn)</div>
+          <div class="code-block" style="max-height:120px">
+<span class="cm">// Carbon menghitung selisih hari terlambat</span>
+<span class="kw">if</span> (<span class="fn">$returnDate</span>-><span class="fn">gt</span>(<span class="fn">$dueDate</span>)) {
+    <span class="fn">$daysLate</span> = <span class="fn">$returnDate</span>-><span class="fn">diffInDays</span>(<span class="fn">$dueDate</span>);
+    <span class="fn">$denda</span> = <span class="fn">$daysLate</span> * <span class="num">5000</span>; <span class="cm">// Rp 5.000/hari</span>
+}
+<span class="fn">$borrowing</span>-><span class="fn">update</span>([<span class="str">'denda'</span> => <span class="fn">$denda</span>, <span class="str">'status'</span> => <span class="str">'Dikembalikan'</span>]);
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 13: D3 vs D4 PENYEMPURNAAN ═══════════════════════════════ -->
+  <div class="slide" id="s12">
+    <div class="slide-inner">
+      <div class="hd">
+        <div class="section-num">12 — Penyempurnaan D3 → D4</div>
+        <div class="section-title">Apa yang Berubah dari MVP ke Final?</div>
+      </div>
+      <div style="width:100%;max-width:1050px">
+        <div class="compare" style="max-width:100%">
+          <div class="compare-col old">
+            <h3>❌ D3 — MVP (Versi Awal)</h3>
+            <ul>
+              <li>Tidak ada sistem approval — peminjaman langsung disetujui</li>
+              <li>Tidak ada kalkulasi denda — tidak ada konsekuensi keterlambatan</li>
+              <li>Database SQLite — tidak cocok untuk produksi</li>
+              <li>Tidak ada Role-Based Access Control (semua user sama)</li>
+              <li>Tidak ada filter/pencarian di laporan peminjaman</li>
+              <li>Tidak ada ekspor data/laporan CSV</li>
+              <li>Buku bisa dihapus meski sedang dipinjam</li>
+              <li>Akun bisa dihapus meski masih ada peminjaman aktif</li>
+              <li>Stok tidak terkontrol — bisa over-borrowing</li>
+              <li>Dashboard tidak ada — langsung ke halaman buku</li>
+            </ul>
+          </div>
+          <div class="compare-col new">
+            <h3>✅ D4 — Final Product</h3>
+            <ul>
+              <li>Approval Workflow 2 tahap: pinjam & kembali (admin harus approve)</li>
+              <li>Kalkulasi denda otomatis Rp 5.000/hari via Carbon</li>
+              <li>Migrasi ke MySQL untuk produksi yang robust</li>
+              <li>RBAC penuh: Admin vs User dengan middleware & bouncer check</li>
+              <li>Filter by nama, status, flag overdue pada halaman laporan</li>
+              <li>Ekspor laporan ke CSV UTF-8 BOM (kompatibel Excel)</li>
+              <li>Proteksi: buku dengan pinjaman aktif tidak bisa dihapus</li>
+              <li>Proteksi: akun dengan pinjaman aktif tidak bisa dihapus</li>
+              <li>Stok dikurangi saat approval — mencegah race condition</li>
+              <li>Dashboard statistik lengkap untuk admin (8 metrik) & user (5 metrik)</li>
+            </ul>
+          </div>
+        </div>
+        <div style="margin-top:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center">
+            <div style="font-size:24px;font-weight:900;color:var(--accent)">+10</div>
+            <div style="font-size:11px;color:var(--muted)">Fitur Baru</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center">
+            <div style="font-size:24px;font-weight:900;color:var(--green)">5</div>
+            <div style="font-size:11px;color:var(--muted)">Bug Kritis Diperbaiki</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center">
+            <div style="font-size:24px;font-weight:900;color:var(--yellow)">MySQL</div>
+            <div style="font-size:11px;color:var(--muted)">Upgrade DB Engine</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center">
+            <div style="font-size:24px;font-weight:900;color:var(--accent3)">RBAC</div>
+            <div style="font-size:11px;color:var(--muted)">Sistem Keamanan Baru</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 14: HASIL PENGUJIAN ═══════════════════════════════ -->
+  <div class="slide" id="s13">
+    <div class="slide-inner">
+      <div class="hd">
+        <div class="section-num">13 — Hasil Pengujian</div>
+        <div class="section-title">Verifikasi & Validasi Sistem</div>
+        <div class="section-sub">Pengujian dilakukan dengan metode Black-Box Testing untuk memastikan setiap fungsi bekerja sesuai spesifikasi.</div>
+      </div>
+      <div style="width:100%;max-width:1050px">
+        <div class="result-stats" style="margin-bottom:16px">
+          <div class="stat-big">
+            <div class="num green">100%</div>
+            <div class="lbl">Fitur Berfungsi</div>
+          </div>
+          <div class="stat-big">
+            <div class="num cyan">18</div>
+            <div class="lbl">Skenario Uji</div>
+          </div>
+          <div class="stat-big">
+            <div class="num green">18</div>
+            <div class="lbl">Skenario Lulus</div>
+          </div>
+          <div class="stat-big">
+            <div class="num yellow">0</div>
+            <div class="lbl">Gagal / Error</div>
+          </div>
+          <div class="stat-big">
+            <div class="num purple">5</div>
+            <div class="lbl">Proteksi Aktif</div>
+          </div>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr><th>#</th><th>Skenario Uji</th><th>Aktor</th><th>Hasil yang Diharapkan</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>Register akun baru</td><td>User</td><td>Akun dibuat, role=user secara default</td><td><span class="badge-status badge-pass">LULUS</span></td></tr>
+            <tr><td>2</td><td>Login dengan kredensial valid</td><td>Admin/User</td><td>Redirect ke dashboard sesuai role</td><td><span class="badge-status badge-pass">LULUS</span></td></tr>
+            <tr><td>3</td><td>Admin tambah buku baru</td><td>Admin</td><td>Buku tersimpan dengan stok benar</td><td><span class="badge-status badge-pass">LULUS</span></td></tr>
+            <tr><td>4</td><td>User lihat katalog buku</td><td>User</td><td>Buku tampil, tombol pinjam aktif jika stok > 0</td><td><span class="badge-status badge-pass">LULUS</span></td></tr>
+            <tr><td>5</td><td>User request peminjaman</td><td>User</td><td>Status "Menunggu Persetujuan Pinjam" dibuat</td><td><span class="badge-status badge-pass">LULUS</span></td></tr>
+            <tr><td>6</td><td>Admin setujui peminjaman</td><td>Admin</td><td>Status → Dipinjam, stok buku berkurang</td><td><span class="badge-status badge-pass">LULUS</span></td></tr>
+            <tr><td>7</td><td>Admin tolak peminjaman</td><td>Admin</td><td>Status → Ditolak, stok tidak berubah</td><td><span class="badge-status badge-pass">LULUS</span></td></tr>
+            <tr><td>8</td><td>User request pengembalian</td><td>User</td><td>Status → Menunggu Persetujuan Kembali</td><td><span class="badge-status badge-pass">LULUS</span></td></tr>
+            <tr><td>9</td><td>Admin setujui pengembalian tepat waktu</td><td>Admin</td><td>Status → Dikembalikan, denda = Rp 0</td><td><span class="badge-status badge-pass">LULUS</span></td></tr>
+            <tr><td>10</td><td>Admin setujui pengembalian terlambat</td><td>Admin</td><td>Denda = jumlah hari × Rp 5.000 tersimpan</td><td><span class="badge-status badge-pass">LULUS</span></td></tr>
+            <tr><td>11</td><td>Hapus buku yang sedang dipinjam</td><td>Admin</td><td>Sistem menolak dengan pesan error</td><td><span class="badge-status badge-pass">LULUS</span></td></tr>
+            <tr><td>12</td><td>Hapus akun user aktif meminjam</td><td>Admin</td><td>Sistem menolak dengan pesan error</td><td><span class="badge-status badge-pass">LULUS</span></td></tr>
+            <tr><td>13</td><td>User coba akses halaman admin</td><td>User</td><td>Akses ditolak (403 Forbidden)</td><td><span class="badge-status badge-pass">LULUS</span></td></tr>
+            <tr><td>14</td><td>Filter laporan by status</td><td>Admin</td><td>Hanya data dengan status dipilih tampil</td><td><span class="badge-status badge-pass">LULUS</span></td></tr>
+            <tr><td>15</td><td>Filter laporan: buku terlambat</td><td>Admin</td><td>Hanya peminjaman yang melewati tenggat tampil</td><td><span class="badge-status badge-pass">LULUS</span></td></tr>
+            <tr><td>16</td><td>Ekspor CSV</td><td>Admin</td><td>File .csv terdownload, data lengkap dan valid</td><td><span class="badge-status badge-pass">LULUS</span></td></tr>
+            <tr><td>17</td><td>Promote user ke admin</td><td>Admin</td><td>Role user berubah → admin, mendapat akses penuh</td><td><span class="badge-status badge-pass">LULUS</span></td></tr>
+            <tr><td>18</td><td>Request pinjam stok habis</td><td>User</td><td>Error: "Stok buku tidak mencukupi"</td><td><span class="badge-status badge-pass">LULUS</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 15: MANAJEMEN PROYEK ═══════════════════════════════ -->
+  <div class="slide" id="s14">
+    <div class="slide-inner">
+      <div class="hd">
+        <div class="section-num">14 — Manajemen Proyek</div>
+        <div class="section-title">Bagaimana Proyek Dikelola?</div>
+      </div>
+      <div style="width:100%;max-width:1050px">
+        <div class="mgmt-grid">
+          <div class="mgmt-card">
+            <h4>📅 Timeline & Fase</h4>
+            <ul>
+              <li>D1 (SRS): Analisis kebutuhan</li>
+              <li>D2 (Desain): ERD + wireframe</li>
+              <li>D3 (MVP): Implementasi awal + testing</li>
+              <li>D4 (Final): Refinement + deploy-ready</li>
+            </ul>
+          </div>
+          <div class="mgmt-card">
+            <h4>🛠️ Tools & Environment</h4>
+            <ul>
+              <li>Git untuk version control</li>
+              <li>VS Code / IDE utama</li>
+              <li>.env untuk konfigurasi rahasia</li>
+              <li>Composer + NPM package manager</li>
+              <li>XAMPP / MySQL server lokal</li>
+            </ul>
+          </div>
+          <div class="mgmt-card">
+            <h4>🔀 Metodologi</h4>
+            <ul>
+              <li>Iterative / Agile ringan</li>
+              <li>4 deliverable sebagai sprint</li>
+              <li>Feedback-driven improvement</li>
+              <li>Testing di setiap akhir sprint</li>
+            </ul>
+          </div>
+          <div class="mgmt-card">
+            <h4>📦 Struktur Kode (MVC)</h4>
+            <ul>
+              <li>app/Models/ — 4 model Eloquent</li>
+              <li>app/Http/Controllers/ — 7 controller</li>
+              <li>resources/views/ — Blade templates</li>
+              <li>database/migrations/ — 6 migrasi</li>
+              <li>routes/web.php — 15+ routes</li>
+            </ul>
+          </div>
+          <div class="mgmt-card">
+            <h4>🧪 Strategi Testing</h4>
+            <ul>
+              <li>Black-Box Testing (fungsional)</li>
+              <li>18 skenario uji manual</li>
+              <li>Edge case: stok 0, pinjaman aktif</li>
+              <li>Security test: akses antar role</li>
+              <li>phpunit tersedia untuk unit test</li>
+            </ul>
+          </div>
+          <div class="mgmt-card">
+            <h4>🚀 Deployment</h4>
+            <ul>
+              <li>Laravel 12 + PHP 8.2+</li>
+              <li>MySQL sebagai DB produksi</li>
+              <li>npm run build (Vite asset bundle)</li>
+              <li>php artisan migrate --force</li>
+              <li>.env.example terdokumentasi</li>
+            </ul>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px">
+          <div style="font-size:13px;font-weight:700;color:#a5b4fc;margin-bottom:10px">📊 Ringkasan Kompleksitas Sistem</div>
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;text-align:center">
+            <div><div style="font-size:22px;font-weight:800;color:var(--accent)">4</div><div style="font-size:10px;color:var(--muted)">Models</div></div>
+            <div><div style="font-size:22px;font-weight:800;color:var(--green)">7</div><div style="font-size:10px;color:var(--muted)">Controllers</div></div>
+            <div><div style="font-size:22px;font-weight:800;color:var(--yellow)">6</div><div style="font-size:10px;color:var(--muted)">Migrations</div></div>
+            <div><div style="font-size:22px;font-weight:800;color:var(--accent3)">15+</div><div style="font-size:10px;color:var(--muted)">Routes</div></div>
+            <div><div style="font-size:22px;font-weight:800;color:var(--accent2)">12+</div><div style="font-size:10px;color:var(--muted)">Blade Views</div></div>
+            <div><div style="font-size:22px;font-weight:800;color:var(--orange)">5</div><div style="font-size:10px;color:var(--muted)">Status States</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SLIDE 16: PENUTUP ═══════════════════════════════ -->
+  <div class="slide" id="s15">
+    <div class="glow-bg"></div>
+    <div class="closing" style="position:relative;z-index:1">
+      <div style="font-size:64px;margin-bottom:20px">📚</div>
+      <h1>Terima Kasih!</h1>
+      <p style="font-size:18px;margin-bottom:32px;color:var(--muted)">Sistem Peminjaman Buku Perpustakaan — Final Product (D4)</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;max-width:600px;margin:0 auto 32px">
+        <div style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);border-radius:12px;padding:14px">
+          <div style="font-size:22px;margin-bottom:6px">⚙️</div>
+          <div style="font-size:12px;color:#a5b4fc;font-weight:600">Laravel 12</div>
+          <div style="font-size:11px;color:var(--muted)">Backend Engine</div>
+        </div>
+        <div style="background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);border-radius:12px;padding:14px">
+          <div style="font-size:22px;margin-bottom:6px">🎨</div>
+          <div style="font-size:12px;color:#a5f3fc;font-weight:600">TailwindCSS</div>
+          <div style="font-size:11px;color:var(--muted)">Frontend Styling</div>
+        </div>
+        <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:14px">
+          <div style="font-size:22px;margin-bottom:6px">🗄️</div>
+          <div style="font-size:12px;color:#6ee7b7;font-weight:600">MySQL</div>
+          <div style="font-size:11px;color:var(--muted)">Database</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap;font-size:13px;color:#4b5563">
+        <span>✓ 18/18 Test Cases Lulus</span>
+        <span>✓ RBAC Terimplementasi</span>
+        <span>✓ Approval Workflow Aktif</span>
+        <span>✓ Denda Otomatis</span>
+        <span>✓ Export CSV</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end deck -->
+
+<div id="nav">
+  <button class="nav-btn" id="prev-btn" onclick="changeSlide(-1)" disabled>‹</button>
+  <span id="slide-counter">1 / 16</span>
+  <button class="nav-btn" id="next-btn" onclick="changeSlide(1)">›</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  // Create dots
+  const dotsContainer = document.getElementById('dots');
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (i === 0 ? ' active' : '');
+    dot.onclick = () => goTo(i);
+    dotsContainer.appendChild(dot);
+  }
+
+  function goTo(n) {
+    slides[current].classList.remove('active');
+    dotsContainer.children[current].classList.remove('active');
+    current = Math.max(0, Math.min(n, total - 1));
+    slides[current].classList.add('active');
+    dotsContainer.children[current].classList.add('active');
+    document.getElementById('slide-counter').textContent = (current + 1) + ' / ' + total;
+    document.getElementById('prev-btn').disabled = current === 0;
+    document.getElementById('next-btn').disabled = current === total - 1;
+    document.getElementById('progress-bar').style.width = ((current + 1) / total * 100) + '%';
+  }
+
+  function changeSlide(dir) {
+    goTo(current + dir);
+  }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown') changeSlide(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp'   || e.key === 'PageUp')   changeSlide(-1);
+  });
+
+  // Init progress bar
+  goTo(0);
+</script>
+</body>
+</html>
