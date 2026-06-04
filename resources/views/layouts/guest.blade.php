@@ -13,7 +13,7 @@
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gradient-to-br from-blue-50 to-indigo-100">
             <div>
                 <a href="/">
-                    <img src="{{ asset('images/logo.png') }}" alt="Logo" class="w-24 h-24 hover:scale-105 transition-transform duration-300 drop-shadow-md">
+                    <img src="{{ asset('images/logo.png') }}" alt="Logo" class="h-24 w-auto object-contain hover:scale-105 transition-transform duration-300 drop-shadow-md">
                 </a>
             </div>
 

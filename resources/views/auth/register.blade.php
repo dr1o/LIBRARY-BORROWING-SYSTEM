@@ -15,7 +15,7 @@
 
         <div>
             <x-input-label for="kontak" value="Nomor HP / Kontak" class="font-semibold text-gray-700" />
-            <x-text-input id="kontak" class="block mt-1 w-full rounded-xl shadow-sm focus:ring-blue-500 transition duration-200" type="text" name="kontak" :value="old('kontak')" required autocomplete="kontak" />
+            <x-text-input id="kontak" class="block mt-1 w-full rounded-xl shadow-sm focus:ring-blue-500 transition duration-200" type="number" name="kontak" :value="old('kontak')" required autocomplete="kontak" />
             <x-input-error :messages="$errors->get('kontak')" class="mt-2" />
         </div>
 
