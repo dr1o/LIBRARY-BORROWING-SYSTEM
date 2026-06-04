@@ -22,7 +22,7 @@
                     </button>
                 </form>
 
-                <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+                <div class="hidden md:block overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
@@ -48,6 +48,27 @@
                             @endforeach
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Mobile Cards -->
+                <div class="grid grid-cols-1 gap-4 md:hidden">
+                    @foreach($categories as $cat)
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col gap-3">
+                        <div class="flex justify-between items-center border-b pb-2">
+                            <span class="font-bold text-gray-900">{{ $cat->nama_kategori }}</span>
+                            <span class="bg-gray-100 text-gray-800 py-1 px-3 rounded-full text-xs font-bold">{{ $cat->books_count }} Buku</span>
+                        </div>
+                        <div class="flex justify-end mt-1">
+                            <form action="{{ route('categories.destroy', $cat->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus kategori ini?');">
+                                @csrf @method('DELETE')
+                                <button class="text-red-500 hover:text-red-800 font-semibold text-sm transition border border-red-200 px-3 py-1 rounded">Hapus Kategori</button>
+                            </form>
+                        </div>
+                    </div>
+                    @endforeach
+                    @if($categories->isEmpty())
+                        <div class="text-center text-gray-500 p-4 border border-gray-200 rounded-xl">Belum ada kategori.</div>
+                    @endif
                 </div>
 
             </div>

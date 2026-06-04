@@ -43,7 +43,7 @@
                     </form>
                 </div>
                 
-                <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+                <div class="hidden md:block overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
@@ -107,6 +107,62 @@
                             @endif
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Mobile Cards -->
+                <div class="grid grid-cols-1 gap-4 md:hidden">
+                    @foreach($all_books as $item)
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col gap-3">
+                        <div class="border-b pb-2">
+                            <h3 class="font-bold text-gray-900 text-lg">{{ $item->judul_buku }}</h3>
+                            <p class="text-sm text-gray-500">{{ $item->penulis ?? '-' }}</p>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-gray-500">Stok:</span>
+                            @if($item->stok == 0)
+                                <span class="px-3 py-1 inline-flex text-xs font-semibold rounded-full bg-red-100 text-red-800">Habis</span>
+                            @else
+                                <span class="px-3 py-1 inline-flex text-xs font-bold rounded-full bg-green-100 text-green-800">{{ $item->stok }} Tersedia</span>
+                            @endif
+                        </div>
+                        <div class="mt-2">
+                            @if(auth()->user()?->role == 'admin')
+                                <div class="flex gap-2">
+                                    <a href="{{ route('books.edit', $item->id) }}" class="flex-1 text-center bg-indigo-50 text-indigo-700 py-2 rounded-lg font-semibold border border-indigo-100 hover:bg-indigo-100 transition">Edit</a>
+                                    <form action="{{ route('books.destroy', $item->id) }}" method="POST" class="flex-1" onsubmit="return confirm('Yakin ingin menghapus buku ini secara permanen?');">
+                                        @csrf @method('DELETE')
+                                        <button class="w-full text-center bg-red-50 text-red-700 py-2 rounded-lg font-semibold border border-red-100 hover:bg-red-100 transition">Hapus</button>
+                                    </form>
+                                </div>
+                            @endif
+
+                            @if(auth()->user()?->role == 'user')
+                                @php
+                                    $alreadyBorrowed = \App\Models\Borrowing::where('user_id', auth()->id())
+                                        ->where('book_id', $item->id)
+                                        ->whereIn('status',['Menunggu Persetujuan Pinjam','Dipinjam'])
+                                        ->exists();
+                                @endphp
+
+                                @if($alreadyBorrowed)
+                                    <button class="w-full bg-gray-200 text-gray-500 font-semibold py-2 rounded-lg cursor-not-allowed text-sm">Sedang Dipinjam</button>
+                                @elseif($item->stok > 0)
+                                    <form action="{{ route('borrowings.store') }}" method="POST" class="flex items-center gap-2">
+                                        @csrf
+                                        <input type="hidden" name="book_id" value="{{ $item->id }}">
+                                        <input type="number" name="jumlah" min="1" max="{{ $item->stok }}" value="1" class="w-20 border-gray-300 rounded-lg text-sm py-2 px-3 focus:ring-indigo-500" required>
+                                        <button class="flex-1 bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 shadow-sm transition text-sm">Pinjam Buku</button>
+                                    </form>
+                                @else
+                                    <button class="w-full bg-red-50 text-red-400 font-semibold py-2 rounded-lg cursor-not-allowed text-sm border border-red-100">Tidak Tersedia</button>
+                                @endif
+                            @endif
+                        </div>
+                    </div>
+                    @endforeach
+                    @if($all_books->isEmpty())
+                        <div class="text-center text-gray-500 p-4 border border-gray-200 rounded-xl">Tidak ada buku yang ditemukan.</div>
+                    @endif
                 </div>
             </div>
         </div>
